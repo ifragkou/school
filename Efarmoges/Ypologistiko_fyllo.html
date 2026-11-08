@@ -1,0 +1,1663 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Φτιάξε το λογιστικό σου φύλλο</title>
+<style>
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{display:flex;flex-direction:column;font-family:"Segoe UI",Arial,sans-serif;background:#dfe3ee;color:#222;user-select:none;-webkit-user-select:none;overflow:hidden}
+#top{position:relative;background:linear-gradient(90deg,#2f9e44,#1c7ed6);color:#fff;padding:6px 56px 6px 16px;font-size:18px;font-weight:700}
+#ribbon{background:#f4f6fb;border-bottom:2px solid #c9cfe3;display:flex;flex-wrap:wrap;padding:6px 6px;row-gap:5px}
+.grp{display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:0 10px;border-right:3px solid #8f9bc4}
+.grp:last-child{border-right:0}
+.row{display:flex;gap:6px;align-items:center}
+.lbl{font-size:11px;color:#667;margin-top:3px}
+.tool{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:66px;height:54px;padding:4px 8px;border:1px solid #b9c2dd;background:#fff;border-radius:8px;font-size:12px;line-height:1.15;text-align:center;cursor:pointer;position:relative;font-family:inherit;color:#222}
+.tool .ico{font-size:20px;line-height:1.1;display:flex;align-items:center;justify-content:center;height:24px}
+.tool:hover{background:#e7ecff}
+.tool.on{background:#cfd9ff;border-color:#4c6ef5}
+.tool.lab{min-width:62px;padding:2px 6px;font-size:11px}
+.tool.lab .ico{font-size:18px}
+.tool.dis{opacity:.45}
+select{height:34px;font-size:14px;border-radius:6px;border:1px solid #b9c2dd;padding:0 4px;background:#fff;font-family:inherit;cursor:pointer}
+#selSize{width:68px}
+.sw{display:block;font-weight:700;font-size:17px;line-height:1;border-bottom:5px solid #e03131}
+.bgsw{display:block;width:22px;height:16px;border:1px solid #667;border-radius:3px;background:#ffd43b}
+.dd{position:relative}
+.menu{display:none;position:absolute;top:100%;left:0;margin-top:5px;background:#fff;border:1px solid #b9c2dd;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.25);padding:6px;z-index:50;width:270px}
+.dd.right .menu{left:auto;right:0}
+.menu.open{display:block}
+.mi{display:flex;align-items:center;gap:10px;width:100%;padding:7px 8px;border:0;background:none;border-radius:8px;font-size:14px;font-family:inherit;cursor:pointer;text-align:left}
+.mi:hover{background:#e7ecff}
+.mi .mic{width:28px;text-align:center;font-size:20px;display:flex;justify-content:center}
+.pal{width:204px;padding:10px}
+.pgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.psw{height:34px;border-radius:7px;border:2px solid #fff;outline:1px solid #99a;cursor:pointer;padding:0}
+.psw:hover{outline:3px solid #4c6ef5}
+.more{display:block;width:100%;margin-top:9px;padding:7px;text-align:center;font-size:13px;font-family:inherit;border:1px solid #b9c2dd;border-radius:8px;background:#f4f6fb;cursor:pointer}
+.more:hover{background:#e7ecff}
+
+#grid{flex:1;min-height:0;overflow:auto;position:relative;background:#fff;outline:none;isolation:isolate}
+#sheet{position:relative;width:max-content}
+#tbl{table-layout:fixed;border-collapse:collapse;font-family:"Comic Sans MS","Comic Sans",Arial,sans-serif}
+#tbl td{border:1px solid #d3d8e6;padding:0 6px;overflow:hidden;white-space:nowrap;vertical-align:middle;background-color:#fff;cursor:cell;font-size:18px;color:#222;line-height:1.2}
+#tbl th{background:#eef1fa;color:#445;font-weight:600;font-size:13px;font-family:"Segoe UI",Arial,sans-serif;border:0;padding:0;box-shadow:inset -1px -1px 0 #b7bfd8;position:sticky;z-index:4;text-align:center;cursor:pointer;overflow:visible}
+#tbl thead th{top:0;z-index:5;height:30px}
+#tbl th.rh{left:0;z-index:4}
+#tbl th.cn{left:0;top:0;z-index:6}
+#tbl th.hl{background:#cfd9ff;color:#1c3fd6}
+#tbl td.sel{background-image:linear-gradient(rgba(76,110,245,.2),rgba(76,110,245,.2))}
+#ctx{position:fixed;width:230px;z-index:2000}
+#ctx .sep{height:1px;background:#d3d8e6;margin:4px 6px}
+#ctx .mi .kb{margin-left:auto;font-size:12px;color:#889}
+#tbl td.cutm{outline:2px dashed #e03131;outline-offset:-2px}
+#tbl td.act{outline:2px solid #4c6ef5;outline-offset:-2px}
+#tbl td.ref{outline:2px dashed #e8590c;outline-offset:-2px;background-image:linear-gradient(rgba(232,89,12,.12),rgba(232,89,12,.12))}
+.cr{position:absolute;right:-4px;top:0;width:8px;height:100%;cursor:col-resize;z-index:2;touch-action:none}
+#ed{display:none;position:absolute;z-index:3;border:2px solid #4c6ef5;outline:none;padding:0 4px;margin:0;background:#fff;color:#222;box-shadow:0 2px 10px rgba(0,0,0,.25);font-family:"Comic Sans MS","Comic Sans",Arial,sans-serif;user-select:text;-webkit-user-select:text}
+#layer{position:absolute;left:0;top:0;width:0;height:0;pointer-events:none}
+.obj{position:absolute;z-index:4;outline:none;touch-action:none;background:#fff;pointer-events:auto;cursor:move}
+.obj .cv{width:100%;height:100%;overflow:hidden}
+.obj.img .cv img{display:block;width:100%;height:100%;pointer-events:none;-webkit-user-drag:none}
+.obj.chart{box-shadow:0 0 0 1px #b9c2dd,0 2px 8px rgba(0,0,0,.18)}
+.obj.chart .cv svg{display:block;pointer-events:none}
+.obj:hover,.obj:focus{outline:2px solid #4c6ef5}
+.otools{display:none;position:absolute;right:4px;top:4px;gap:4px;z-index:2}
+.obj:hover>.otools,.obj:focus-within>.otools{display:flex}
+.ob{width:30px;height:26px;border:1px solid #99a;background:#fff;border-radius:6px;cursor:pointer;font-size:14px;padding:0;line-height:1}
+.ob:hover{background:#e7ecff}
+.ob.on{background:#cfd9ff;border-color:#4c6ef5}
+.ob.x{background:#e03131;color:#fff;border-color:#e03131}
+.rsz{display:none;position:absolute;width:16px;height:16px;background:#4c6ef5;border:2px solid #fff;border-radius:4px;touch-action:none;z-index:3}
+.rsz.nw{left:-8px;top:-8px;cursor:nwse-resize}
+.rsz.ne{right:-8px;top:-8px;cursor:nesw-resize}
+.rsz.sw{left:-8px;bottom:-8px;cursor:nesw-resize}
+.rsz.se{right:-8px;bottom:-8px;cursor:nwse-resize}
+.obj:hover>.rsz,.obj:focus-within>.rsz{display:block}
+#tabs{display:flex;align-items:stretch;gap:3px;padding:4px 8px 0;background:#dfe3ee;border-top:1px solid #c9cfe3;overflow-x:auto;flex:none}
+.tab{display:flex;align-items:center;gap:6px;padding:6px 14px;border:1px solid #b9c2dd;border-bottom:0;border-radius:8px 8px 0 0;background:#eef1fa;font-family:inherit;font-size:14px;color:#334;cursor:pointer;white-space:nowrap}
+.tab:hover{background:#e7ecff}
+.tab.on{background:#fff;font-weight:700;color:#1c3fd6;box-shadow:inset 0 3px 0 #4c6ef5}
+.tab .tx{width:18px;height:18px;line-height:16px;text-align:center;border-radius:9px;font-size:12px;color:#fff;background:#e03131}
+.tab.dragging{opacity:.4}
+.tab.drop-l{box-shadow:inset 4px 0 0 #e8590c}
+.tab.drop-r{box-shadow:inset -4px 0 0 #e8590c}
+.tab .te{font-size:12px;cursor:pointer;opacity:.65}
+.tab .te:hover{opacity:1}
+.tab input.tabin{font:inherit;width:120px;border:1px solid #4c6ef5;border-radius:4px;padding:1px 4px;outline:none;user-select:text;-webkit-user-select:text}
+.tab.add{font-size:18px;font-weight:700;color:#2f9e44;padding:3px 12px}
+#status{display:flex;justify-content:space-between;gap:12px;padding:5px 14px;background:#f4f6fb;border-top:1px solid #c9cfe3;font-size:13px;color:#445}
+#stTxt{font-weight:700;white-space:nowrap}
+#toast{position:fixed;left:50%;bottom:48px;transform:translateX(-50%);background:#333;color:#fff;padding:10px 18px;border-radius:20px;font-size:15px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:1000;max-width:90vw;text-align:center}
+#toast.show{opacity:1}
+.fsbtn{position:absolute;top:50%;right:10px;transform:translateY(-50%);width:32px;height:30px;padding:0;border:1px solid rgba(255,255,255,.65);border-radius:7px;background:rgba(255,255,255,.18);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.fsbtn:hover{background:rgba(255,255,255,.38)}
+.fsbtn:focus-visible{outline:3px solid #ffd43b;outline-offset:1px}
+.fsbtn svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}
+.fsbtn .ico-exit{display:none}
+.is-fs .fsbtn .ico-enter{display:none}
+.is-fs .fsbtn .ico-exit{display:block}
+@media (max-width:1260px){
+.grp{padding:0 6px}
+.row{gap:4px}
+.tool{min-width:58px;padding:4px 5px}
+.tool.lab{min-width:56px;padding:2px 4px}
+#selSize{width:60px}
+}
+</style>
+</head>
+<body>
+<div id="top">📊 Φτιάξε το λογιστικό σου φύλλο
+  <button class="fsbtn" id="fsBtn" type="button" aria-label="Πλήρης οθόνη" title="Πλήρης οθόνη">
+    <svg class="ico-enter" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9V3h6M15 3h6v6M21 15v6h-6M9 21H3v-6"/></svg>
+    <svg class="ico-exit" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3v6H3M21 9h-6V3M15 21v-6h6M3 15h6v6"/></svg>
+  </button>
+</div>
+
+<div id="ribbon">
+  <div class="grp">
+    <div class="row">
+      <button class="tool" id="btnOpen" title="Άνοιγμα αρχείου"><span class="ico">📂</span>Άνοιγμα</button>
+      <button class="tool" id="btnSave" title="Αποθήκευση αρχείου"><span class="ico">💾</span>Αποθήκευση</button>
+    </div>
+    <div class="lbl">Αρχείο</div>
+  </div>
+
+  <div class="grp">
+    <div class="row">
+      <button class="tool dis" id="btnUndo" title="Αναίρεση (Ctrl+Z)"><span class="ico">↩️</span>Αναίρεση</button>
+    </div>
+    <div class="lbl">Επεξεργασία</div>
+  </div>
+
+  <div class="grp">
+    <div class="row">
+      <select id="selSize" title="Μέγεθος γραμμάτων"></select>
+      <button class="tool lab" id="bB" title="Έντονα γράμματα (Ctrl+B)"><span class="ico"><b>B</b></span>Έντονα</button>
+      <button class="tool lab" id="bI" title="Πλάγια γράμματα (Ctrl+I)"><span class="ico"><i>I</i></span>Πλάγια</button>
+      <button class="tool lab" id="bU" title="Υπογράμμιση (Ctrl+U)"><span class="ico"><u>U</u></span>Υπογράμμιση</button>
+      <div class="dd"><button class="tool lab" id="btnFc" title="Χρώμα γραμμάτων"><span class="ico"><span class="sw" id="fcSw">A</span></span>Χρώμα γραμμάτων</button><div class="menu pal" id="fcPal"></div></div>
+    </div>
+    <div class="lbl">Γραμματοσειρά</div>
+  </div>
+
+  <div class="grp">
+    <div class="row">
+      <div class="dd"><button class="tool" id="btnFill" title="Χρώμα γεμίσματος κελιών"><span class="ico"><span class="bgsw" id="fillSw"></span></span>Χρώμα γεμίσματος</button><div class="menu pal" id="fillPal"></div></div>
+      <button class="tool" id="btnMerge" title="Ένωση (συγχώνευση) των επιλεγμένων κελιών"><span class="ico"><svg width="26" height="20" viewBox="0 0 26 20"><rect x="1.5" y="2.5" width="23" height="15" rx="2" fill="#fff" stroke="#445" stroke-width="2"/><path d="M6 10h14M6 10l3-3M6 10l3 3M20 10l-3-3M20 10l-3 3" stroke="#1c7ed6" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Ένωση κελιών</button>
+      <div class="dd"><button class="tool" id="btnBorder" title="Περίγραμμα κελιών"><span class="ico"><svg width="22" height="22" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" fill="none" stroke="#222" stroke-width="2"/><path d="M12 2v20M2 12h20" stroke="#222" stroke-width="2"/></svg></span>Περίγραμμα ▾</button><div class="menu" id="borderMenu"></div></div>
+      <button class="tool lab" id="bAl" title="Στοίχιση αριστερά"><span class="ico"><svg width="22" height="18" viewBox="0 0 22 18"><path d="M2 3h16M2 7.5h10M2 12h16M2 16.5h10" stroke="#222" stroke-width="2" stroke-linecap="round"/></svg></span>Αριστερά</button><button class="tool lab" id="bAc" title="Στοίχιση στο κέντρο"><span class="ico"><svg width="22" height="18" viewBox="0 0 22 18"><path d="M3 3h16M6 7.5h10M3 12h16M6 16.5h10" stroke="#222" stroke-width="2" stroke-linecap="round"/></svg></span>Κέντρο</button><button class="tool lab" id="bAr" title="Στοίχιση δεξιά"><span class="ico"><svg width="22" height="18" viewBox="0 0 22 18"><path d="M4 3h16M10 7.5h10M4 12h16M10 16.5h10" stroke="#222" stroke-width="2" stroke-linecap="round"/></svg></span>Δεξιά</button>
+    </div>
+    <div class="lbl">Κελιά</div>
+  </div>
+
+  <div class="grp">
+    <div class="row">
+      <button class="tool" id="btnImg" title="Εισαγωγή εικόνας από τον υπολογιστή"><span class="ico">🖼️</span>Εικόνα</button>
+      <div class="dd right"><button class="tool" id="btnChart" title="Εισαγωγή γραφήματος από τα επιλεγμένα κελιά"><span class="ico">📊</span>Γράφημα ▾</button><div class="menu" id="chartMenu"></div></div>
+    </div>
+    <div class="lbl">Εισαγωγή</div>
+  </div>
+</div>
+
+<div id="grid" tabindex="0">
+  <div id="sheet">
+    <table id="tbl"></table>
+    <input id="ed" type="text" autocomplete="off" spellcheck="false">
+    <div id="layer"></div>
+  </div>
+</div>
+<div id="tabs"></div>
+<div id="status"><span id="stTxt"></span><span>💡 Κάνε κλικ σε κελί και γράψε. Πράξεις: γράψε = και κάνε κλικ στα κελιά (ή σύρε για περιοχή), π.χ. =A1+B1 ή =SUM(A1:A5). Γράφημα: επίλεξε πρώτα τα κελιά με τα δεδομένα (λέξεις στην πρώτη στήλη, αριθμοί δίπλα).</span></div>
+<div class="menu" id="ctx"></div>
+<div id="toast"></div>
+<input type="file" id="fileIn" accept=".json,application/json" hidden>
+<input type="file" id="imgIn" accept="image/*" hidden>
+
+<script>
+(function(){
+const R=100,C=26,RH=46,CHH=30,DEF_W=110,DEF_H=34,DEF_FS=18;
+const SIZES=[10,12,14,16,18,20,24,28,32,40,48];
+const BD='2px solid #111';
+const TEXT_COLORS=['#000000','#e03131','#f76707','#fcc419','#40c057','#1c7ed6','#7048e8','#ffffff','#868e96','#f06595','#a5622a','#099268','#15aabf','#364fc7','#862e9c','#5c940d'];
+const FILL_COLORS=['#ffffff','#ffdeeb','#ffe8cc','#fff3bf','#d3f9d8','#d0ebff','#e5dbff','#e9ecef','#ffc9c9','#ffd8a8','#ffec99','#b2f2bb','#a5d8ff','#d0bfff','#ced4da','#495057'];
+const PAL=['#4c6ef5','#f76707','#40c057','#e03131','#fcc419','#7048e8','#15aabf','#f06595'];
+const $=id=>document.getElementById(id);
+const grid=$('grid'),tbl=$('tbl'),ed=$('ed'),layer=$('layer'),selSize=$('selSize');
+const bB=$('bB'),bI=$('bI'),bU=$('bU');
+
+let cells=new Map(), merges=[], mmap=new Map(), colW=Array(C).fill(DEF_W), objs=[];
+let sel={ar:0,ac:0,fr:0,fc:0};
+let editing=null, dirty=false, undoStack=[], drag=null;
+let lastRef=null, refDrag=null, refTds=[];
+let tdMap=new Map(), colEls=[], rowEls=[], colTh=[], rowTh=[], selTds=[], hlTh=[];
+
+const key=(r,c)=>r+','+c;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const colName=c=>String.fromCharCode(65+c);
+let toastT=null;
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2800);}
+function markDirty(){dirty=true;}
+
+/* ---------- συγχωνεύσεις ---------- */
+function rebuildMerges(){
+  mmap=new Map();
+  merges.forEach(m=>{for(let r=m.r;r<m.r+m.rs;r++)for(let c=m.c;c<m.c+m.cs;c++)mmap.set(key(r,c),m);});
+}
+function unitAt(r,c){const m=mmap.get(key(r,c));return m?{r:m.r,c:m.c,rs:m.rs,cs:m.cs}:{r:r,c:c,rs:1,cs:1};}
+function forUnits(rc,fn){
+  for(let r=rc.r1;r<=rc.r2;r++)for(let c=rc.c1;c<=rc.c2;c++){
+    const m=mmap.get(key(r,c));
+    if(m&&(m.r!==r||m.c!==c))continue;
+    fn(m?{r:m.r,c:m.c,rs:m.rs,cs:m.cs}:{r:r,c:c,rs:1,cs:1});
+  }
+}
+function normRect(){
+  let r1=Math.min(sel.ar,sel.fr),r2=Math.max(sel.ar,sel.fr),c1=Math.min(sel.ac,sel.fc),c2=Math.max(sel.ac,sel.fc);
+  let ch=true;
+  while(ch){
+    ch=false;
+    for(const m of merges){
+      if(m.r<=r2&&m.r+m.rs-1>=r1&&m.c<=c2&&m.c+m.cs-1>=c1){
+        const a=Math.min(r1,m.r),b=Math.max(r2,m.r+m.rs-1),c=Math.min(c1,m.c),d=Math.max(c2,m.c+m.cs-1);
+        if(a!==r1||b!==r2||c!==c1||d!==c2){r1=a;r2=b;c1=c;c2=d;ch=true;}
+      }
+    }
+  }
+  return {r1:r1,c1:c1,r2:r2,c2:c2};
+}
+
+/* ---------- κελιά και τιμές ---------- */
+function getCell(r,c,create){
+  const k=key(r,c);let x=cells.get(k);
+  if(!x&&create){x={};cells.set(k,x);}
+  return x;
+}
+function rawAt(r,c){const x=cells.get(key(r,c));return x&&x.v?x.v:'';}
+function parseNum(s){
+  if(typeof s!=='string')return NaN;
+  const t=s.trim();
+  return /^-?\d+([.,]\d+)?$/.test(t)?parseFloat(t.replace(',','.')):NaN;
+}
+function fnum(x){
+  if(!isFinite(x))return '#ΣΦΑΛΜΑ';
+  return String(Math.round(x*1e9)/1e9).replace('.',',');
+}
+
+/* ---------- τύποι (απλές πράξεις και συναρτήσεις) ---------- */
+function FErr(m){this.m=m;}
+const GMAP={'α':'A','β':'B','ψ':'C','δ':'D','ε':'E','φ':'F','γ':'G','η':'H','ι':'I','ξ':'J','κ':'K','λ':'L','μ':'M','ν':'N','ο':'O','π':'P','ρ':'R','σ':'S','ς':'W','τ':'T','θ':'U','ω':'V','χ':'X','υ':'Y','ζ':'Z'};
+function deacc(s){return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
+function toLatin(s){return deacc(s).split('').map(ch=>{const l=ch.toLowerCase();return GMAP[l]||ch.toUpperCase();}).join('');}
+const FN_ALIAS={'ΑΘΡΟΙΣΜΑ':'SUM','ΜΕΣΟΣ':'AVERAGE','ΜΕΣΟΣ.ΟΡΟΣ':'AVERAGE','ΕΛΑΧΙΣΤΟ':'MIN','ΜΕΓΙΣΤΟ':'MAX','ΜΕΤΡΗΣΗ':'COUNT','ΠΛΗΘΟΣ':'COUNT'};
+function fnName(n){
+  const g=deacc(n).toUpperCase();
+  if(FN_ALIAS[g])return FN_ALIAS[g];
+  const l=toLatin(n);
+  return ['SUM','AVERAGE','MIN','MAX','COUNT'].indexOf(l)>=0?l:null;
+}
+function parseRef(s){
+  const m=/^([^\d]+)(\d+)$/.exec(s);
+  if(!m)throw new FErr('#ΑΝΑΦΟΡΑ');
+  const l=toLatin(m[1]);
+  if(l.length!==1||l<'A'||l>'Z')throw new FErr('#ΑΝΑΦΟΡΑ');
+  const c=l.charCodeAt(0)-65,r=parseInt(m[2],10)-1;
+  if(r<0||r>=R||c>=C)throw new FErr('#ΑΝΑΦΟΡΑ');
+  return {r:r,c:c};
+}
+const LET='A-Za-zΑ-Ωα-ωΆΈΉΊΌΎΏάέήίόύώϊϋΐΰ';
+const reRange=new RegExp('['+LET+']{1,2}\\d{1,3}:['+LET+']{1,2}\\d{1,3}','y');
+const reFn=new RegExp('['+LET+']['+LET+'.]*(?=\\()','y');
+const reRef=new RegExp('['+LET+']{1,2}\\d{1,3}(?![\\d'+LET+'(])','y');
+const reNum=/\d+(?:\.\d+)?/y;
+function tokenize(s){
+  const out=[];let i=0,m;
+  while(i<s.length){
+    const ch=s[i];
+    if(/\s/.test(ch)){i++;continue;}
+    reRange.lastIndex=i;
+    if((m=reRange.exec(s))){
+      const p=m[0].split(':'),a=parseRef(p[0]),b=parseRef(p[1]);
+      out.push({t:'range',r1:Math.min(a.r,b.r),r2:Math.max(a.r,b.r),c1:Math.min(a.c,b.c),c2:Math.max(a.c,b.c)});
+      i+=m[0].length;continue;
+    }
+    reFn.lastIndex=i;
+    if((m=reFn.exec(s))){
+      const n=fnName(m[0]);
+      if(!n)throw new FErr('#ΟΝΟΜΑ');
+      out.push({t:'fn',name:n});i+=m[0].length;continue;
+    }
+    reRef.lastIndex=i;
+    if((m=reRef.exec(s))){const a=parseRef(m[0]);out.push({t:'ref',r:a.r,c:a.c});i+=m[0].length;continue;}
+    reNum.lastIndex=i;
+    if((m=reNum.exec(s))){out.push({t:'num',v:parseFloat(m[0])});i+=m[0].length;continue;}
+    if('+-*/^(),;'.indexOf(ch)>=0){out.push({t:'op',v:ch});i++;continue;}
+    throw new FErr('#ΣΦΑΛΜΑ');
+  }
+  return out;
+}
+function numOf(v){
+  if(typeof v==='number')return v;
+  if(v==='')return 0;
+  throw new FErr('#ΤΙΜΗ');
+}
+function cellVal(r,c,stack){
+  const raw=rawAt(r,c);
+  if(raw.charAt(0)==='='){
+    const k=key(r,c);
+    if(stack.has(k))throw new FErr('#ΚΥΚΛΟΣ');
+    stack.add(k);
+    try{return evalF(raw.slice(1),stack);}finally{stack.delete(k);}
+  }
+  if(raw==='')return '';
+  const n=parseNum(raw);
+  return isNaN(n)?raw:n;
+}
+function evalF(src,stack){
+  const toks=tokenize(src);let p=0;
+  const isOp=v=>toks[p]&&toks[p].t==='op'&&toks[p].v===v;
+  const expectOp=v=>{if(!isOp(v))throw new FErr('#ΣΦΑΛΜΑ');p++;};
+  function expr(){
+    let v=term();
+    while(isOp('+')||isOp('-')){const o=toks[p++].v;const r=term();v=o==='+'?v+r:v-r;}
+    return v;
+  }
+  function term(){
+    let v=pow();
+    while(isOp('*')||isOp('/')){
+      const o=toks[p++].v;const r=pow();
+      if(o==='/'){if(r===0)throw new FErr('#ΔΙΑΙΡ/0');v=v/r;}else v=v*r;
+    }
+    return v;
+  }
+  function pow(){
+    let v=unary();
+    if(isOp('^')){p++;v=Math.pow(v,pow());}
+    return v;
+  }
+  function unary(){
+    if(isOp('-')){p++;return -unary();}
+    if(isOp('+')){p++;return unary();}
+    return atom();
+  }
+  function collect(a,nums){
+    for(let r=a.r1;r<=a.r2;r++)for(let c=a.c1;c<=a.c2;c++){
+      const v=cellVal(r,c,stack);
+      if(typeof v==='number')nums.push(v);
+    }
+  }
+  function atom(){
+    const t=toks[p++];
+    if(!t)throw new FErr('#ΣΦΑΛΜΑ');
+    if(t.t==='num')return t.v;
+    if(t.t==='ref')return numOf(cellVal(t.r,t.c,stack));
+    if(t.t==='fn'){
+      expectOp('(');
+      const nums=[];
+      if(!isOp(')')){
+        for(;;){
+          const a=toks[p],b=toks[p+1];
+          const end=b&&b.t==='op'&&(b.v===','||b.v===';'||b.v===')');
+          if(a&&a.t==='range'&&end){p++;collect(a,nums);}
+          else if(a&&a.t==='ref'&&end){p++;const v=cellVal(a.r,a.c,stack);if(typeof v==='number')nums.push(v);}
+          else nums.push(expr());
+          if(isOp(',')||isOp(';')){p++;continue;}
+          break;
+        }
+      }
+      expectOp(')');
+      if(t.name==='SUM')return nums.reduce((x,y)=>x+y,0);
+      if(t.name==='AVERAGE'){if(!nums.length)throw new FErr('#ΔΙΑΙΡ/0');return nums.reduce((x,y)=>x+y,0)/nums.length;}
+      if(t.name==='MIN')return nums.length?Math.min.apply(null,nums):0;
+      if(t.name==='MAX')return nums.length?Math.max.apply(null,nums):0;
+      return nums.length;
+    }
+    if(t.t==='op'&&t.v==='('){const v=expr();expectOp(')');return v;}
+    throw new FErr('#ΣΦΑΛΜΑ');
+  }
+  const v=expr();
+  if(p<toks.length)throw new FErr('#ΣΦΑΛΜΑ');
+  return v;
+}
+function dispText(r,c){
+  const raw=rawAt(r,c);
+  if(raw.charAt(0)!=='=')return raw;
+  try{const v=cellVal(r,c,new Set());return typeof v==='number'?fnum(v):String(v);}
+  catch(e){return e instanceof FErr?e.m:'#ΣΦΑΛΜΑ';}
+}
+function numAt(r,c){
+  try{const v=cellVal(r,c,new Set());return typeof v==='number'&&isFinite(v)?v:NaN;}
+  catch(e){return NaN;}
+}
+
+/* ---------- εμφάνιση πίνακα ---------- */
+function setTdText(td,r,c){
+  const raw=rawAt(r,c),txt=dispText(r,c);
+  td.textContent=txt;
+  const isNum=raw.charAt(0)==='='?(txt!==''&&txt.charAt(0)!=='#'&&!isNaN(parseNum(txt))):!isNaN(parseNum(raw));
+  const ax=(cells.get(key(r,c))||{}).a;
+  td.style.textAlign=ax==='c'?'center':ax==='r'?'right':ax==='l'?'left':(isNum?'right':'left');
+}
+function applyTd(td,r,c){
+  const x=cells.get(key(r,c))||{};
+  const st=td.style;
+  setTdText(td,r,c);
+  st.fontSize=(x.fs||DEF_FS)+'px';
+  st.fontWeight=x.b?'bold':'';
+  st.fontStyle=x.i?'italic':'';
+  st.textDecoration=x.u?'underline':'';
+  st.color=x.fc||'';
+  st.backgroundColor=x.bg||'';
+  if(mmap.has(key(r,c))){st.whiteSpace='normal';st.overflowWrap='anywhere';st.padding='2px 6px';}
+  else{st.whiteSpace='';st.overflowWrap='';st.padding='';}
+  const d=x.d||'';
+  st.borderTop=d.indexOf('t')>=0?BD:'';
+  st.borderRight=d.indexOf('r')>=0?BD:'';
+  st.borderBottom=d.indexOf('b')>=0?BD:'';
+  st.borderLeft=d.indexOf('l')>=0?BD:'';
+}
+function setTblWidth(){tbl.style.width=(RH+colW.reduce((a,b)=>a+b,0))+'px';}
+function updateRowHeights(){
+  const mx=new Array(R).fill(DEF_FS);
+  cells.forEach((x,k)=>{if(!x.fs)return;const r=+k.slice(0,k.indexOf(','));if(x.fs>mx[r])mx[r]=x.fs;});
+  for(let r=0;r<R;r++){if(rowEls[r])rowEls[r].style.height=Math.max(DEF_H,Math.round(mx[r]*1.7))+'px';}
+}
+function buildTable(){
+  editing=null;ed.style.display='none';
+  tbl.innerHTML='';tdMap=new Map();colEls=[];rowEls=[];colTh=[];rowTh=[];selTds=[];hlTh=[];
+  const cg=document.createElement('colgroup');
+  let col=document.createElement('col');col.style.width=RH+'px';cg.appendChild(col);
+  for(let c=0;c<C;c++){col=document.createElement('col');col.style.width=colW[c]+'px';cg.appendChild(col);colEls.push(col);}
+  tbl.appendChild(cg);
+  const thead=document.createElement('thead'),hr=document.createElement('tr');
+  hr.style.height=CHH+'px';
+  const cn=document.createElement('th');cn.className='cn';cn.title='Επιλογή όλων';hr.appendChild(cn);
+  for(let c=0;c<C;c++){
+    const th=document.createElement('th');th.className='ch';th.dataset.c=c;th.textContent=colName(c);
+    const cr=document.createElement('i');cr.className='cr';cr.title='Σύρε για να αλλάξεις το πλάτος';th.appendChild(cr);
+    colTh.push(th);hr.appendChild(th);
+  }
+  thead.appendChild(hr);tbl.appendChild(thead);
+  const tb=document.createElement('tbody');
+  for(let r=0;r<R;r++){
+    const tr=document.createElement('tr');rowEls.push(tr);
+    const th=document.createElement('th');th.className='rh';th.dataset.r=r;th.textContent=r+1;rowTh.push(th);tr.appendChild(th);
+    for(let c=0;c<C;c++){
+      const m=mmap.get(key(r,c));
+      if(m&&(m.r!==r||m.c!==c))continue;
+      const td=document.createElement('td');td.dataset.r=r;td.dataset.c=c;
+      if(m){td.rowSpan=m.rs;td.colSpan=m.cs;}
+      tdMap.set(key(r,c),td);tr.appendChild(td);
+    }
+    tb.appendChild(tr);
+  }
+  tbl.appendChild(tb);
+  setTblWidth();updateRowHeights();
+  tdMap.forEach((td,k)=>{applyTd(td,+td.dataset.r,+td.dataset.c);});
+}
+function refreshUnits(rc){forUnits(rc,u=>{const td=tdMap.get(key(u.r,u.c));if(td)applyTd(td,u.r,u.c);});}
+function refreshAllTds(){tdMap.forEach(td=>applyTd(td,+td.dataset.r,+td.dataset.c));}
+function refreshAllValues(){tdMap.forEach(td=>setTdText(td,+td.dataset.r,+td.dataset.c));updateCharts();}
+
+/* ---------- επιλογή ---------- */
+function updateSelUI(){
+  selTds.forEach(t=>t.classList.remove('sel','act'));selTds=[];
+  hlTh.forEach(t=>t.classList.remove('hl'));hlTh=[];
+  const rc=normRect();
+  let n=0;forUnits(rc,()=>{n++;});
+  forUnits(rc,u=>{const td=tdMap.get(key(u.r,u.c));if(td){if(n>1)td.classList.add('sel');selTds.push(td);}});
+  const a=unitAt(sel.ar,sel.ac),atd=tdMap.get(key(a.r,a.c));
+  if(atd){atd.classList.add('act');if(selTds.indexOf(atd)<0)selTds.push(atd);}
+  for(let c=rc.c1;c<=rc.c2;c++){colTh[c].classList.add('hl');hlTh.push(colTh[c]);}
+  for(let r=rc.r1;r<=rc.r2;r++){rowTh[r].classList.add('hl');hlTh.push(rowTh[r]);}
+  const nm=colName(rc.c1)+(rc.r1+1);
+  $('stTxt').textContent=n<=1?'Κελί '+nm:'Επιλογή '+nm+':'+colName(rc.c2)+(rc.r2+1)+' ('+(rc.r2-rc.r1+1)+'×'+(rc.c2-rc.c1+1)+')';
+  const x=cells.get(key(a.r,a.c))||{};
+  bB.classList.toggle('on',!!x.b);bI.classList.toggle('on',!!x.i);bU.classList.toggle('on',!!x.u);
+  const dt=dispText(a.r,a.c),eff=x.a||(dt!==''&&!isNaN(parseNum(dt))?'r':'l');
+  $('bAl').classList.toggle('on',eff==='l');$('bAc').classList.toggle('on',eff==='c');$('bAr').classList.toggle('on',eff==='r');
+  selSize.value=String(x.fs||DEF_FS);
+}
+function ensureVisible(r,c){
+  const u=unitAt(r,c),td=tdMap.get(key(u.r,u.c));
+  if(!td)return;
+  const l=td.offsetLeft,t=td.offsetTop,rr=l+td.offsetWidth,b=t+td.offsetHeight;
+  if(l<grid.scrollLeft+RH)grid.scrollLeft=Math.max(0,l-RH);
+  else if(rr>grid.scrollLeft+grid.clientWidth)grid.scrollLeft=rr-grid.clientWidth+4;
+  if(t<grid.scrollTop+CHH)grid.scrollTop=Math.max(0,t-CHH);
+  else if(b>grid.scrollTop+grid.clientHeight)grid.scrollTop=b-grid.clientHeight+4;
+}
+function moveActive(dr,dc,extend){
+  if(extend){
+    sel.fr=clamp(sel.fr+dr,0,R-1);sel.fc=clamp(sel.fc+dc,0,C-1);
+    updateSelUI();ensureVisible(sel.fr,sel.fc);
+  }else{
+    const u=unitAt(sel.ar,sel.ac);
+    let r=dr>0?u.r+u.rs:(dr<0?u.r-1:u.r),c=dc>0?u.c+u.cs:(dc<0?u.c-1:u.c);
+    r=clamp(r,0,R-1);c=clamp(c,0,C-1);
+    const t=unitAt(r,c);
+    sel.ar=sel.fr=t.r;sel.ac=sel.fc=t.c;
+    updateSelUI();ensureVisible(t.r,t.c);
+  }
+}
+function selectAll(){sel={ar:0,ac:0,fr:R-1,fc:C-1};updateSelUI();}
+
+/* ---------- επεξεργασία κελιού ---------- */
+function edStyle(x){
+  ed.style.fontSize=(x.fs||DEF_FS)+'px';
+  ed.style.fontWeight=x.b?'bold':'normal';
+  ed.style.fontStyle=x.i?'italic':'normal';
+  ed.style.textAlign=x.a==='c'?'center':x.a==='r'?'right':'left';
+  ed.style.textDecoration=x.u?'underline':'none';
+  ed.style.color=x.fc||'#222';
+  ed.style.backgroundColor=x.bg||'#fff';
+}
+function startEdit(init){
+  const u=unitAt(sel.ar,sel.ac),td=tdMap.get(key(u.r,u.c));
+  if(!td)return;
+  const x=cells.get(key(u.r,u.c))||{};
+  clearRefHl();lastRef=null;
+  editing={r:u.r,c:u.c};
+  ed.style.left=td.offsetLeft+'px';ed.style.top=td.offsetTop+'px';
+  ed.style.width=Math.max(td.offsetWidth,90)+'px';ed.style.height=td.offsetHeight+'px';
+  edStyle(x);
+  ed.value=init!=null?init:(x.v||'');
+  ed.style.display='block';ed.focus();
+  const L=ed.value.length;try{ed.setSelectionRange(L,L);}catch(e){}
+}
+function syncEd(){
+  if(!editing)return;
+  edStyle(cells.get(key(editing.r,editing.c))||{});
+}
+function focusGrid(){grid.focus({preventScroll:true});}
+function clearRefHl(){refTds.forEach(t=>t.classList.remove('ref'));refTds=[];}
+function refPoint(){
+  if(!editing||ed.value.charAt(0)!=='=')return null;
+  const s=ed.selectionStart,e=ed.selectionEnd;
+  if(typeof s!=='number')return null;
+  if(lastRef&&lastRef.end===s&&e===s&&ed.value.slice(lastRef.start,lastRef.end)===lastRef.text)return{start:lastRef.start,end:lastRef.end};
+  let i=s-1;
+  while(i>=0&&ed.value.charAt(i)===' ')i--;
+  if(i>=0&&'=+-*/^(,;'.indexOf(ed.value.charAt(i))>=0)return{start:s,end:e};
+  return null;
+}
+function setRef(r0,c0,r1,c1){
+  const ra=Math.min(r0,r1),rb=Math.max(r0,r1),ca=Math.min(c0,c1),cb=Math.max(c0,c1);
+  const a=colName(ca)+(ra+1),b=colName(cb)+(rb+1);
+  const text=(ra===rb&&ca===cb)?a:a+':'+b;
+  const v=ed.value;
+  ed.value=v.slice(0,refDrag.start)+text+v.slice(refDrag.end);
+  refDrag.end=refDrag.start+text.length;
+  ed.focus();
+  try{ed.setSelectionRange(refDrag.end,refDrag.end);}catch(err){}
+  lastRef={start:refDrag.start,end:refDrag.end,text:text};
+  clearRefHl();
+  forUnits({r1:ra,r2:rb,c1:ca,c2:cb},u=>{const t=tdMap.get(key(u.r,u.c));if(t){t.classList.add('ref');refTds.push(t);}});
+}
+function commitEdit(dr,dc){
+  if(!editing)return false;
+  clearRefHl();lastRef=null;
+  const r=editing.r,c=editing.c;editing=null;
+  const v=ed.value;ed.style.display='none';
+  if(v!==rawAt(r,c)){
+    snap();
+    const x=getCell(r,c,true);
+    if(v==='')delete x.v;else x.v=v.slice(0,500);
+    refreshAllValues();markDirty();
+  }
+  focusGrid();
+  if(dr||dc)moveActive(dr||0,dc||0,false);
+  return true;
+}
+function cancelEdit(){
+  if(!editing)return;
+  clearRefHl();lastRef=null;
+  editing=null;ed.style.display='none';focusGrid();
+}
+ed.addEventListener('keydown',e=>{
+  if(e.isComposing)return;
+  if(e.key==='Enter'){e.preventDefault();commitEdit(e.shiftKey?-1:1,0);}
+  else if(e.key==='Tab'){e.preventDefault();commitEdit(0,e.shiftKey?-1:1);}
+  else if(e.key==='Escape'){e.preventDefault();cancelEdit();}
+  else if(e.key==='ArrowDown'){e.preventDefault();commitEdit(1,0);}
+  else if(e.key==='ArrowUp'){e.preventDefault();commitEdit(-1,0);}
+});
+ed.addEventListener('blur',()=>{if(editing)commitEdit();});
+ed.addEventListener('input',()=>{clearRefHl();});
+
+/* ---------- αναίρεση ---------- */
+const imgIds=[],imgIdx=new Map();
+function packImg(k,v){
+  if(k==='src'&&typeof v==='string'&&v.indexOf('data:')===0){
+    let id=imgIdx.get(v);
+    if(id===undefined){id=imgIds.length;imgIds.push(v);imgIdx.set(v,id);}
+    return '@img'+id;
+  }
+  return v;
+}
+function unpackImg(k,v){return(k==='src'&&typeof v==='string'&&v.indexOf('@img')===0)?imgIds[+v.slice(4)]:v;}
+function serialize(){
+  const cl=[];
+  cells.forEach((x,k)=>{if(Object.keys(x).length){const p=k.split(',');cl.push([+p[0],+p[1],x]);}});
+  return {
+    cells:cl,
+    merges:merges.map(m=>({r:m.r,c:m.c,rs:m.rs,cs:m.cs})),
+    colW:colW.slice(),
+    objs:objs.map(o=>o.k==='img'
+      ?{k:'img',src:o.src,x:o.x,y:o.y,w:o.w,h:o.h}
+      :{k:'chart',type:o.type,rg:{r1:o.rg.r1,c1:o.rg.c1,r2:o.rg.r2,c2:o.rg.c2},title:o.title,x:o.x,y:o.y,w:o.w,h:o.h})
+  };
+}
+function snap(){
+  undoStack.push(JSON.stringify(serialize(),packImg));
+  if(undoStack.length>80)undoStack.shift();
+  updateUndoBtn();
+}
+function loadState(st){
+  cells=new Map();
+  st.cells.forEach(a=>cells.set(key(a[0],a[1]),a[2]));
+  merges=st.merges.map(m=>({r:m.r,c:m.c,rs:m.rs,cs:m.cs}));
+  colW=st.colW.slice();
+  objs=st.objs.map(o=>Object.assign({},o));
+  rebuildMerges();
+  const a=unitAt(sel.ar,sel.ac);sel.ar=a.r;sel.ac=a.c;
+  const f=unitAt(sel.fr,sel.fc);sel.fr=f.r;sel.fc=f.c;
+  buildTable();buildObjs();updateSelUI();
+}
+function undo(){
+  if(!undoStack.length){toast('Δεν υπάρχει κάτι να αναιρέσω');return;}
+  const st=JSON.parse(undoStack.pop(),unpackImg);
+  loadState(st);dirty=true;updateUndoBtn();
+}
+function updateUndoBtn(){$('btnUndo').classList.toggle('dis',!undoStack.length);}
+
+/* ---------- μορφοποίηση ---------- */
+function fmt(kind,val){
+  const rc=normRect();snap();
+  const au=unitAt(sel.ar,sel.ac),ax=cells.get(key(au.r,au.c))||{};
+  const on=(kind==='b'||kind==='i'||kind==='u')?!ax[kind]:false;
+  for(let r=rc.r1;r<=rc.r2;r++)for(let c=rc.c1;c<=rc.c2;c++){
+    const x=getCell(r,c,true);
+    if(kind==='fs')x.fs=val;
+    else if(kind==='fc'||kind==='bg'){if(val)x[kind]=val;else delete x[kind];}
+    else if(kind==='a'){x.a=val;}
+    else{if(on)x[kind]=1;else delete x[kind];}
+  }
+  refreshUnits(rc);updateRowHeights();updateSelUI();syncEd();markDirty();
+}
+function setD(x,side,on){
+  let d=x.d||'';
+  const has=d.indexOf(side)>=0;
+  if(on&&!has)d+=side;
+  if(!on&&has)d=d.replace(side,'');
+  if(d)x.d=d;else delete x.d;
+}
+function setEdge(u,side,on){
+  setD(getCell(u.r,u.c,true),side,on);
+  if(side==='t'&&u.r>0){for(let c=u.c;c<u.c+u.cs;c++){const n=unitAt(u.r-1,c);setD(getCell(n.r,n.c,true),'b',on);}}
+  else if(side==='b'&&u.r+u.rs<R){for(let c=u.c;c<u.c+u.cs;c++){const n=unitAt(u.r+u.rs,c);setD(getCell(n.r,n.c,true),'t',on);}}
+  else if(side==='l'&&u.c>0){for(let r=u.r;r<u.r+u.rs;r++){const n=unitAt(r,u.c-1);setD(getCell(n.r,n.c,true),'r',on);}}
+  else if(side==='r'&&u.c+u.cs<C){for(let r=u.r;r<u.r+u.rs;r++){const n=unitAt(r,u.c+u.cs);setD(getCell(n.r,n.c,true),'l',on);}}
+}
+function doBorder(mode){
+  commitEdit();snap();
+  const rc=normRect();
+  forUnits(rc,u=>{
+    if(mode==='all'){['t','r','b','l'].forEach(s=>setEdge(u,s,true));}
+    else if(mode==='none'){['t','r','b','l'].forEach(s=>setEdge(u,s,false));}
+    else{
+      if(u.r===rc.r1)setEdge(u,'t',true);
+      if(u.r+u.rs-1===rc.r2)setEdge(u,'b',true);
+      if(u.c===rc.c1)setEdge(u,'l',true);
+      if(u.c+u.cs-1===rc.c2)setEdge(u,'r',true);
+    }
+  });
+  refreshAllTds();markDirty();
+}
+function doMerge(){
+  commitEdit();
+  const rc=normRect(),nr=rc.r2-rc.r1+1,nc=rc.c2-rc.c1+1;
+  const ex=merges.find(m=>m.r===rc.r1&&m.c===rc.c1&&m.rs===nr&&m.cs===nc);
+  if(ex){
+    snap();
+    const o=getCell(ex.r,ex.c,true),d0=o.d||'';
+    for(let r=ex.r;r<ex.r+ex.rs;r++)for(let c=ex.c;c<ex.c+ex.cs;c++){
+      const x=getCell(r,c,true);
+      if(!(r===ex.r&&c===ex.c)){['b','i','u','fs','fc','bg','a'].forEach(k=>{if(o[k]!==undefined)x[k]=o[k];});}
+      let d='';
+      if(r===ex.r&&d0.indexOf('t')>=0)d+='t';
+      if(r===ex.r+ex.rs-1&&d0.indexOf('b')>=0)d+='b';
+      if(c===ex.c&&d0.indexOf('l')>=0)d+='l';
+      if(c===ex.c+ex.cs-1&&d0.indexOf('r')>=0)d+='r';
+      if(d)x.d=d;else delete x.d;
+    }
+    merges=merges.filter(m=>m!==ex);
+    rebuildMerges();
+    sel.ar=ex.r;sel.ac=ex.c;sel.fr=ex.r+ex.rs-1;sel.fc=ex.c+ex.cs-1;
+  }else{
+    if(nr*nc===1){toast('Επίλεξε δύο ή περισσότερα κελιά για να τα ενώσεις 🔗');return;}
+    let others=false;
+    for(let r=rc.r1;r<=rc.r2;r++)for(let c=rc.c1;c<=rc.c2;c++){if(!(r===rc.r1&&c===rc.c1)&&rawAt(r,c)!=='')others=true;}
+    if(others&&!confirm('Μετά την ένωση θα μείνει μόνο το περιεχόμενο του πάνω αριστερά κελιού. Να συνεχίσω;'))return;
+    snap();
+    let d='';
+    const has=(r,c,s)=>((cells.get(key(r,c))||{}).d||'').indexOf(s)>=0;
+    for(let c=rc.c1;c<=rc.c2;c++){if(has(rc.r1,c,'t')&&d.indexOf('t')<0)d+='t';if(has(rc.r2,c,'b')&&d.indexOf('b')<0)d+='b';}
+    for(let r=rc.r1;r<=rc.r2;r++){if(has(r,rc.c1,'l')&&d.indexOf('l')<0)d+='l';if(has(r,rc.c2,'r')&&d.indexOf('r')<0)d+='r';}
+    merges=merges.filter(m=>!(m.r>=rc.r1&&m.r+m.rs-1<=rc.r2&&m.c>=rc.c1&&m.c+m.cs-1<=rc.c2));
+    const o=getCell(rc.r1,rc.c1,true);
+    for(let r=rc.r1;r<=rc.r2;r++)for(let c=rc.c1;c<=rc.c2;c++){if(!(r===rc.r1&&c===rc.c1))cells.delete(key(r,c));}
+    if(d)o.d=d;else delete o.d;
+    merges.push({r:rc.r1,c:rc.c1,rs:nr,cs:nc});
+    rebuildMerges();
+    sel.ar=sel.fr=rc.r1;sel.ac=sel.fc=rc.c1;
+  }
+  buildTable();updateSelUI();updateCharts();markDirty();
+}
+function clearSel(){
+  const rc=normRect();snap();
+  forUnits(rc,u=>{const x=cells.get(key(u.r,u.c));if(x&&x.v!==undefined)delete x.v;});
+  refreshAllValues();markDirty();
+}
+function pasteText(t){
+  const rows=t.replace(/\r/g,'').replace(/\n$/,'').split('\n').map(l=>l.split('\t'));
+  const u=unitAt(sel.ar,sel.ac);
+  snap();
+  rows.forEach((row,i)=>row.forEach((val,j)=>{
+    const r=u.r+i,c=u.c+j;
+    if(r>=R||c>=C)return;
+    const m=mmap.get(key(r,c));
+    if(m&&(m.r!==r||m.c!==c))return;
+    const x=getCell(r,c,true);
+    if(val==='')delete x.v;else x.v=val.slice(0,500);
+  }));
+  refreshAllValues();markDirty();
+}
+
+/* ---------- αντιγραφή / αποκοπή / επικόλληση ---------- */
+let clip=null,cutTds=[];
+const normT=t=>String(t||'').replace(/\r/g,'').replace(/\n+$/,'');
+function clearCutMark(){cutTds.forEach(t=>t.classList.remove('cutm'));cutTds=[];}
+function writeClip(text){
+  let ok=false;
+  try{
+    const ta=document.createElement('textarea');ta.value=text;
+    ta.style.cssText='position:fixed;left:-9999px;top:0;opacity:0';
+    document.body.appendChild(ta);ta.focus();ta.select();
+    ok=document.execCommand('copy');ta.remove();
+  }catch(e){}
+  if(!ok&&navigator.clipboard&&navigator.clipboard.writeText){try{navigator.clipboard.writeText(text).catch(()=>{});}catch(e){}}
+  focusGrid();
+}
+function doCopy(isCut,e){
+  commitEdit();
+  const rc=normRect(),lines=[],list=[],mg=[];
+  for(let r=rc.r1;r<=rc.r2;r++){
+    const row=[];
+    for(let c=rc.c1;c<=rc.c2;c++){
+      row.push(rawAt(r,c).replace(/[\t\r\n]+/g,' '));
+      const x=cells.get(key(r,c));
+      if(x&&Object.keys(x).length)list.push([r-rc.r1,c-rc.c1,JSON.parse(JSON.stringify(x))]);
+    }
+    lines.push(row.join('\t'));
+  }
+  merges.forEach(m=>{if(m.r>=rc.r1&&m.r+m.rs-1<=rc.r2&&m.c>=rc.c1&&m.c+m.cs-1<=rc.c2)mg.push({dr:m.r-rc.r1,dc:m.c-rc.c1,rs:m.rs,cs:m.cs});});
+  const text=lines.join('\n');
+  clearCutMark();
+  clip={text:text,cells:list,merges:mg,rows:rc.r2-rc.r1+1,cols:rc.c2-rc.c1+1,r0:rc.r1,c0:rc.c1,isCut:!!isCut,src:isCut?rc:null,sheet:sheets[curSheet]};
+  if(e){e.clipboardData.setData('text/plain',text);e.preventDefault();}
+  else writeClip(text);
+  if(isCut){
+    forUnits(rc,u=>{const td=tdMap.get(key(u.r,u.c));if(td){td.classList.add('cutm');cutTds.push(td);}});
+    toast('Αποκόπηκε ✂️ Διάλεξε κελί και επικόλλησε');
+  }else toast('Αντιγράφηκε ✔');
+}
+function shiftFormula(raw,dr,dc){
+  const re=new RegExp('(?<!['+LET+'\\d.])(['+LET+']{1,2})(\\d{1,3})(?![\\d'+LET+'(])','g');
+  return raw.replace(re,m=>{
+    let a;try{a=parseRef(m);}catch(err){return m;}
+    const r=a.r+dr,c=a.c+dc;
+    if(r<0||r>=R||c<0||c>=C)return '#ΑΝΑΦΟΡΑ';
+    return colName(c)+(r+1);
+  });
+}
+function pasteClip(cl){
+  commitEdit();
+  const rc=normRect(),r0=rc.r1,c0=rc.c1;
+  const R2=Math.min(R-1,r0+cl.rows-1),C2=Math.min(C-1,c0+cl.cols-1);
+  snap();
+  const move=cl.isCut&&cl.src&&cl.sheet===sheets[curSheet];
+  if(move){
+    const sr=cl.src;
+    for(let r=sr.r1;r<=sr.r2;r++)for(let c=sr.c1;c<=sr.c2;c++)cells.delete(key(r,c));
+    merges=merges.filter(m=>!(m.r>=sr.r1&&m.r+m.rs-1<=sr.r2&&m.c>=sr.c1&&m.c+m.cs-1<=sr.c2));
+  }
+  merges=merges.filter(m=>!(m.r<=R2&&m.r+m.rs-1>=r0&&m.c<=C2&&m.c+m.cs-1>=c0));
+  for(let r=r0;r<=R2;r++)for(let c=c0;c<=C2;c++)cells.delete(key(r,c));
+  cl.cells.forEach(a=>{
+    const r=r0+a[0],c=c0+a[1];
+    if(r>R2||c>C2)return;
+    const o=JSON.parse(JSON.stringify(a[2]));
+    if(!move&&o.v&&o.v.charAt(0)==='=')o.v=shiftFormula(o.v,r0-cl.r0,c0-cl.c0);
+    cells.set(key(r,c),o);
+  });
+  cl.merges.forEach(m=>{
+    const r=r0+m.dr,c=c0+m.dc;
+    if(r+m.rs-1<=R2&&c+m.cs-1<=C2)merges.push({r:r,c:c,rs:m.rs,cs:m.cs});
+  });
+  rebuildMerges();
+  sel={ar:r0,ac:c0,fr:R2,fc:C2};
+  clearCutMark();
+  if(cl.isCut){cl.isCut=false;cl.src=null;}
+  cl.r0=r0;cl.c0=c0;
+  buildTable();updateSelUI();updateCharts();markDirty();
+}
+async function pasteClick(){
+  commitEdit();
+  let t=null;
+  if(navigator.clipboard&&navigator.clipboard.readText){try{t=await navigator.clipboard.readText();}catch(e){}}
+  if(clip&&(t===null||normT(t)===normT(clip.text)))pasteClip(clip);
+  else if(t)pasteText(t);
+  else toast('Δεν υπάρχει κάτι να επικολλήσω');
+  focusGrid();
+}
+
+/* ---------- γραφήματα ---------- */
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function cut(s,n){s=String(s);return s.length>n?s.slice(0,Math.max(1,n-1))+'…':s;}
+function tx(x,y,t,anchor,size,weight,fill,extra){
+  return '<text x="'+x+'" y="'+y+'" text-anchor="'+anchor+'" font-size="'+size+'" font-weight="'+weight+'" fill="'+fill+'"'+(extra||'')+'>'+esc(t)+'</text>';
+}
+function niceScale(lo,hi){
+  if(lo>0)lo=0;if(hi<0)hi=0;if(hi===lo)hi=lo+1;
+  const rough=(hi-lo)/5,mag=Math.pow(10,Math.floor(Math.log10(rough))),n=rough/mag;
+  const step=(n<1.5?1:n<3?2:n<7?5:10)*mag;
+  return {min:Math.floor(lo/step+1e-9)*step,max:Math.ceil(hi/step-1e-9)*step,step:step};
+}
+function chartModel(o){
+  const g=o.rg,r1=g.r1,c1=g.c1,r2=g.r2,c2=g.c2,nR=r2-r1+1,nC=c2-c1+1;
+  const isN=(r,c)=>!isNaN(numAt(r,c));
+  const txt=(r,c)=>dispText(r,c);
+  let labelCol=false;
+  if(nC>=2){
+    let any=false,nm=false;
+    for(let r=r1+1;r<=r2;r++){if(isN(r,c1))nm=true;else if(txt(r,c1)!=='')any=true;}
+    labelCol=any&&!nm;
+  }
+  const sc0=c1+(labelCol?1:0);
+  let hasHeader=false;
+  if(nR>=2){
+    let t=0,n=0;
+    for(let c=sc0;c<=c2;c++){if(isN(r1,c))n++;else if(txt(r1,c)!=='')t++;}
+    hasHeader=t>0&&n===0;
+  }
+  const dr1=r1+(hasHeader?1:0);
+  let dr2=r2;
+  const rowEmpty=r=>{
+    if(labelCol&&txt(r,c1)!=='')return false;
+    for(let c=sc0;c<=c2;c++)if(isN(r,c))return false;
+    return true;
+  };
+  while(dr2>=dr1&&rowEmpty(dr2))dr2--;
+  if(dr2<dr1)return null;
+  const labels=[];
+  for(let r=dr1;r<=dr2;r++)labels.push(labelCol?txt(r,c1):String(r-dr1+1));
+  const series=[];
+  for(let c=sc0;c<=c2;c++){
+    const vals=[];let any=false;
+    for(let r=dr1;r<=dr2;r++){const v=numAt(r,c);if(isNaN(v))vals.push(0);else{vals.push(v);any=true;}}
+    if(any)series.push({name:hasHeader?txt(r1,c):'',vals:vals,col:c});
+  }
+  if(!series.length)return null;
+  if(!hasHeader&&series.length>1)series.forEach(s=>{s.name='Στήλη '+colName(s.col);});
+  return {labels:labels,series:series,hasHeader:hasHeader};
+}
+function legendRow(names,W,H){
+  let tot=0;names.forEach(n=>{tot+=Math.min(14,n.length)*8+36;});
+  let x=Math.max(8,(W-tot)/2),s='';
+  names.forEach((n,j)=>{
+    s+='<rect x="'+x+'" y="'+(H-22)+'" width="14" height="14" rx="3" fill="'+PAL[j%PAL.length]+'"/>'+tx(x+20,H-10,cut(n,14),'start',12,'normal','#333');
+    x+=Math.min(14,n.length)*8+36;
+  });
+  return s;
+}
+function axisSvg(o,m,W,H,top){
+  const ns=m.series.length,multi=ns>1,legH=multi?28:0;
+  const L=58,Rr=16,B=36+legH;
+  const pw=Math.max(20,W-L-Rr),ph=Math.max(20,H-top-B);
+  let lo=Infinity,hi=-Infinity;
+  m.series.forEach(s=>s.vals.forEach(v=>{if(v<lo)lo=v;if(v>hi)hi=v;}));
+  const sc=niceScale(lo,hi);
+  const yOf=v=>top+ph*(1-(v-sc.min)/(sc.max-sc.min));
+  let s='';
+  const nt=Math.max(1,Math.round((sc.max-sc.min)/sc.step));
+  for(let i=0;i<=nt;i++){
+    const v=sc.min+i*sc.step,y=yOf(v),zero=Math.abs(v)<1e-9;
+    s+='<line x1="'+L+'" x2="'+(L+pw)+'" y1="'+y+'" y2="'+y+'" stroke="'+(zero?'#556':'#e1e5f0')+'" stroke-width="'+(zero?1.5:1)+'"/>'+tx(L-8,y+4,fnum(v),'end',11,'normal','#556');
+  }
+  s+='<line x1="'+L+'" x2="'+L+'" y1="'+top+'" y2="'+(top+ph)+'" stroke="#556"/>';
+  const n=m.labels.length,gW=pw/n,showVals=n*ns<=14,mc=Math.max(3,Math.floor(gW/7));
+  for(let i=0;i<n;i++)s+=tx(L+gW*i+gW/2,top+ph+18,cut(m.labels[i],mc),'middle',12,'normal','#333');
+  if(o.type==='line'){
+    m.series.forEach((se,j)=>{
+      const col=PAL[j%PAL.length];
+      const pts=se.vals.map((v,i)=>(L+gW*i+gW/2)+','+yOf(v));
+      s+='<polyline points="'+pts.join(' ')+'" fill="none" stroke="'+col+'" stroke-width="3" stroke-linejoin="round"/>';
+      se.vals.forEach((v,i)=>{
+        const x=L+gW*i+gW/2,y=yOf(v);
+        s+='<circle cx="'+x+'" cy="'+y+'" r="4.5" fill="'+col+'" stroke="#fff" stroke-width="1.5"/>';
+        if(showVals)s+=tx(x,y-9,fnum(v),'middle',11,'normal','#333');
+      });
+    });
+  }else{
+    const bw=Math.min(60,gW*0.78/ns);
+    m.series.forEach((se,j)=>{
+      const col=PAL[j%PAL.length];
+      se.vals.forEach((v,i)=>{
+        const x=L+gW*i+gW/2-bw*ns/2+bw*j,y1=yOf(Math.max(v,0)),y2=yOf(Math.min(v,0));
+        s+='<rect x="'+x+'" y="'+Math.min(y1,y2)+'" width="'+bw+'" height="'+Math.max(1,Math.abs(y2-y1))+'" fill="'+col+'" rx="2"/>';
+        if(showVals)s+=tx(x+bw/2,v>=0?Math.min(y1,y2)-5:Math.max(y1,y2)+13,fnum(v),'middle',11,'normal','#333');
+      });
+    });
+  }
+  if(multi)s+=legendRow(m.series.map((se,j)=>se.name||('Σειρά '+(j+1))),W,H);
+  return s;
+}
+function pieSvg(m,W,H,top){
+  const vals=m.series[0].vals.map(v=>v>0?v:0),tot=vals.reduce((a,b)=>a+b,0);
+  if(!tot)return tx(W/2,H/2,'Το κυκλικό γράφημα θέλει θετικούς αριθμούς','middle',14,'normal','#888');
+  const legW=W>=280?Math.min(170,W*0.4):0;
+  const cx=(W-legW)/2,cy=top+(H-top-10)/2;
+  const rad=Math.max(16,Math.min((W-legW)/2-14,(H-top-10)/2-2));
+  let s='',a=-Math.PI/2;
+  vals.forEach((v,i)=>{
+    if(v<=0)return;
+    const f=v/tot,b=a+f*2*Math.PI,col=PAL[i%PAL.length];
+    if(f>0.9999){s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+rad+'" fill="'+col+'" stroke="#fff" stroke-width="2"/>';}
+    else{
+      const x1=cx+rad*Math.cos(a),y1=cy+rad*Math.sin(a),x2=cx+rad*Math.cos(b),y2=cy+rad*Math.sin(b);
+      s+='<path d="M'+cx+','+cy+' L'+x1+','+y1+' A'+rad+','+rad+' 0 '+(f>0.5?1:0)+' 1 '+x2+','+y2+' Z" fill="'+col+'" stroke="#fff" stroke-width="2"/>';
+    }
+    if(f>=0.06){const mid=(a+b)/2;s+=tx(cx+rad*0.62*Math.cos(mid),cy+rad*0.62*Math.sin(mid)+4,Math.round(f*100)+'%','middle',13,'bold','#222',' stroke="#fff" stroke-width="3" paint-order="stroke"');}
+    a=b;
+  });
+  if(legW){
+    const x0=W-legW+2,maxN=Math.max(1,Math.floor((H-top-10)/22));
+    for(let i=0;i<Math.min(vals.length,maxN);i++){
+      const y=top+12+i*22;
+      s+='<rect x="'+x0+'" y="'+(y-11)+'" width="14" height="14" rx="3" fill="'+PAL[i%PAL.length]+'"/>'+tx(x0+20,y,cut(m.labels[i],12)+' ('+fnum(m.series[0].vals[i])+')','start',12,'normal','#333');
+    }
+  }
+  return s;
+}
+function svgChart(o,W,H){
+  const FF="'Comic Sans MS','Comic Sans',Arial,sans-serif";
+  const m=chartModel(o);
+  let s='<svg xmlns="http://www.w3.org/2000/svg" width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'" font-family="'+FF+'"><rect width="'+W+'" height="'+H+'" fill="#fff"/>';
+  const top=o.title?46:22;
+  if(o.title)s+=tx(W/2,28,cut(o.title,Math.max(6,Math.floor(W/11))),'middle',18,'bold','#222');
+  if(!m)return s+tx(W/2,H/2,'Δεν βρέθηκαν αριθμοί στα κελιά','middle',14,'normal','#888')+'</svg>';
+  s+=o.type==='pie'?pieSvg(m,W,H,top):axisSvg(o,m,W,H,top);
+  return s+'</svg>';
+}
+function renderChartInto(o){if(o._cv)o._cv.innerHTML=svgChart(o,o.w,o.h);}
+function updateCharts(){objs.forEach(o=>{if(o.k==='chart')renderChartInto(o);});}
+
+/* ---------- αντικείμενα πάνω στο φύλλο (εικόνες, γραφήματα) ---------- */
+function posObj(o){const d=o._el;d.style.left=o.x+'px';d.style.top=o.y+'px';d.style.width=o.w+'px';d.style.height=o.h+'px';}
+function buildObjs(){
+  layer.innerHTML='';
+  objs.forEach(createObjEl);
+}
+function removeObj(o){
+  snap();
+  const i=objs.indexOf(o);if(i>=0)objs.splice(i,1);
+  if(o._el)o._el.remove();
+  markDirty();focusGrid();
+}
+function createObjEl(o){
+  const d=document.createElement('div');
+  d.className='obj '+(o.k==='img'?'img':'chart');d.tabIndex=0;
+  const cv=document.createElement('div');cv.className='cv';d.appendChild(cv);
+  o._el=d;o._cv=cv;
+  if(o.k==='img'){const im=new Image();im.src=o.src;im.alt='';im.draggable=false;cv.appendChild(im);}
+  else renderChartInto(o);
+  posObj(o);
+  const tools=document.createElement('div');tools.className='otools';
+  if(o.k==='chart'){
+    [['bar','📊','Στήλες'],['line','📈','Γραμμές'],['pie','🥧','Πίτα']].forEach(a=>{
+      const b=document.createElement('button');b.className='ob'+(o.type===a[0]?' on':'');b.textContent=a[1];b.title='Αλλαγή σε γράφημα: '+a[2];b.dataset.t=a[0];
+      b.addEventListener('click',e=>{
+        e.stopPropagation();
+        if(o.type===a[0])return;
+        snap();o.type=a[0];renderChartInto(o);
+        tools.querySelectorAll('.ob[data-t]').forEach(x=>x.classList.toggle('on',x.dataset.t===o.type));
+        markDirty();
+      });
+      tools.appendChild(b);
+    });
+  }
+  const x=document.createElement('button');x.className='ob x';x.textContent='✕';x.title='Διαγραφή';
+  x.addEventListener('click',e=>{e.stopPropagation();removeObj(o);});
+  tools.appendChild(x);d.appendChild(tools);
+  ['nw','ne','sw','se'].forEach(c=>{
+    const r=document.createElement('div');r.className='rsz '+c;r.title='Σύρε για να αλλάξεις το μέγεθος';
+    r.addEventListener('pointerdown',e=>startResize(e,r,o,c));
+    d.appendChild(r);
+  });
+  d.addEventListener('pointerdown',e=>{
+    if(e.target.closest('.otools,.rsz'))return;
+    e.preventDefault();startMove(e,d,o);
+  });
+  d.addEventListener('keydown',e=>{
+    if((e.key==='Delete'||e.key==='Backspace')&&e.target===d){e.preventDefault();removeObj(o);}
+  });
+  if(o.k==='chart'){
+    d.addEventListener('dblclick',e=>{
+      if(e.target.closest('.otools'))return;
+      const t=prompt('Τίτλος γραφήματος:',o.title||'');
+      if(t===null)return;
+      snap();o.title=t.trim().slice(0,80);renderChartInto(o);markDirty();
+    });
+  }
+  layer.appendChild(d);
+}
+function startMove(e,d,o){
+  commitEdit();
+  d.focus({preventScroll:true});
+  const sx=e.clientX,sy=e.clientY,ox=o.x,oy=o.y;
+  let moved=false;
+  try{d.setPointerCapture(e.pointerId);}catch(err){}
+  const mv=ev=>{
+    if(!moved){if(Math.abs(ev.clientX-sx)+Math.abs(ev.clientY-sy)<3)return;snap();moved=true;}
+    const sw=tbl.offsetWidth,sh=tbl.offsetHeight;
+    o.x=Math.round(clamp(ox+ev.clientX-sx,RH,Math.max(RH,sw-o.w)));
+    o.y=Math.round(clamp(oy+ev.clientY-sy,CHH,Math.max(CHH,sh-o.h)));
+    d.style.left=o.x+'px';d.style.top=o.y+'px';
+  };
+  const up=()=>{d.removeEventListener('pointermove',mv);d.removeEventListener('pointerup',up);d.removeEventListener('pointercancel',up);if(moved)markDirty();};
+  d.addEventListener('pointermove',mv);d.addEventListener('pointerup',up);d.addEventListener('pointercancel',up);
+}
+function startResize(e,r,o,corner){
+  e.preventDefault();e.stopPropagation();
+  const sx=e.clientX,sy=e.clientY,ox=o.x,oy=o.y,ow=o.w,oh=o.h,ratio=oh/ow;
+  const west=corner.charAt(1)==='w',north=corner.charAt(0)==='n';
+  const minW=o.k==='chart'?200:40,minH=o.k==='chart'?150:20;
+  let moved=false;
+  try{r.setPointerCapture(e.pointerId);}catch(err){}
+  const mv=ev=>{
+    if(!moved){snap();moved=true;}
+    const dx=ev.clientX-sx,dy=ev.clientY-sy;
+    let nw,nh;
+    if(o.k==='img'){
+      const c1=ow+(west?-dx:dx),c2=(oh+(north?-dy:dy))/ratio;
+      nw=Math.abs(c1-ow)>Math.abs(c2-ow)?c1:c2;
+      nw=Math.max(minW,nw);nh=Math.max(minH,nw*ratio);
+    }else{
+      nw=Math.max(minW,ow+(west?-dx:dx));nh=Math.max(minH,oh+(north?-dy:dy));
+    }
+    let nx=west?ox+ow-nw:ox,ny=north?oy+oh-nh:oy;
+    const sw=tbl.offsetWidth,sh=tbl.offsetHeight;
+    if(nx<RH){nx=RH;nw=ox+ow-RH;if(o.k==='img')nh=nw*ratio;}
+    if(ny<CHH){ny=CHH;nh=oy+oh-CHH;if(o.k==='img'){nw=nh/ratio;if(west)nx=ox+ow-nw;}}
+    if(!west&&sw&&nx+nw>sw){nw=Math.max(minW,sw-nx);if(o.k==='img')nh=nw*ratio;}
+    if(!north&&sh&&ny+nh>sh){nh=Math.max(minH,sh-ny);if(o.k==='img'){nw=nh/ratio;}}
+    o.x=Math.round(nx);o.y=Math.round(ny);o.w=Math.round(nw);o.h=Math.round(nh);
+    posObj(o);
+    if(o.k==='chart')renderChartInto(o);
+  };
+  const up=()=>{r.removeEventListener('pointermove',mv);r.removeEventListener('pointerup',up);r.removeEventListener('pointercancel',up);if(moved)markDirty();};
+  r.addEventListener('pointermove',mv);r.addEventListener('pointerup',up);r.addEventListener('pointercancel',up);
+}
+function revealObj(o){
+  const rr=o.x+o.w,bb=o.y+o.h;
+  if(rr>grid.scrollLeft+grid.clientWidth)grid.scrollLeft=rr-grid.clientWidth+16;
+  if(o.x<grid.scrollLeft+RH)grid.scrollLeft=Math.max(0,o.x-RH-8);
+  if(bb>grid.scrollTop+grid.clientHeight)grid.scrollTop=bb-grid.clientHeight+16;
+  if(o.y<grid.scrollTop+CHH)grid.scrollTop=Math.max(0,o.y-CHH-8);
+}
+function addChart(type){
+  commitEdit();
+  const rc=normRect();
+  if(rc.r1===rc.r2&&rc.c1===rc.c2){toast('Πρώτα επίλεξε με το ποντίκι τα κελιά που έχουν τα δεδομένα 📊');return;}
+  const o={k:'chart',type:type,rg:{r1:rc.r1,c1:rc.c1,r2:rc.r2,c2:rc.c2},title:'',x:0,y:0,w:440,h:300};
+  const m=chartModel(o);
+  if(!m){toast('Στα επιλεγμένα κελιά δεν βρήκα αριθμούς. Γράψε λέξεις στην πρώτη στήλη και αριθμούς δίπλα τους 📊');return;}
+  o.title=(m.hasHeader&&m.series.length===1&&m.series[0].name)?m.series[0].name:'Γράφημα';
+  const tr=tdMap.get(key(unitAt(rc.r1,rc.c2).r,unitAt(rc.r1,rc.c2).c)),tl=tdMap.get(key(unitAt(rc.r1,rc.c1).r,unitAt(rc.r1,rc.c1).c));
+  const sw=tbl.offsetWidth,sh=tbl.offsetHeight;
+  let x=(tr?tr.offsetLeft+tr.offsetWidth:RH)+24,y=tl?tl.offsetTop:CHH;
+  if(sw&&x+o.w>sw)x=Math.max(RH+4,sw-o.w-4);
+  if(sh&&y+o.h>sh)y=Math.max(CHH+4,sh-o.h-4);
+  o.x=Math.max(RH+4,Math.round(x));o.y=Math.max(CHH+4,Math.round(y));
+  snap();objs.push(o);createObjEl(o);revealObj(o);markDirty();
+  o._el.focus({preventScroll:true});
+}
+
+/* ---------- εικόνες ---------- */
+function insertImage(file,pos){
+  if(!file)return;
+  const url=URL.createObjectURL(file),im=new Image();
+  im.onload=()=>{
+    URL.revokeObjectURL(url);
+    const w0=im.naturalWidth||800,h0=im.naturalHeight||600,k=Math.min(1,1280/Math.max(w0,h0));
+    const cw=Math.max(1,Math.round(w0*k)),ch=Math.max(1,Math.round(h0*k));
+    const cv=document.createElement('canvas');cv.width=cw;cv.height=ch;
+    const cx=cv.getContext('2d'),jpg=file.type==='image/jpeg';
+    if(jpg){cx.fillStyle='#ffffff';cx.fillRect(0,0,cw,ch);}
+    cx.drawImage(im,0,0,cw,ch);
+    let src;
+    try{src=jpg?cv.toDataURL('image/jpeg',0.88):cv.toDataURL('image/png');}
+    catch(e){alert('Δεν μπόρεσα να χρησιμοποιήσω αυτή την εικόνα.');return;}
+    placeImage(src,cw,ch,pos);
+  };
+  im.onerror=()=>{URL.revokeObjectURL(url);alert('Δεν μπόρεσα να ανοίξω αυτό το αρχείο ως εικόνα. Δοκίμασε μια εικόνα τύπου JPG, PNG, GIF ή WebP.');};
+  im.src=url;
+}
+function placeImage(src,iw,ih,pos){
+  commitEdit();
+  const k=Math.min(1,360/iw,260/ih),w=Math.max(40,Math.round(iw*k)),h=Math.max(20,Math.round(ih*k));
+  let x,y;
+  if(pos){x=pos.x-w/2;y=pos.y-h/2;}
+  else{
+    const u=unitAt(sel.ar,sel.ac),td=tdMap.get(key(u.r,u.c));
+    x=(td?td.offsetLeft:RH)+8;y=(td?td.offsetTop:CHH)+8;
+    const vx2=grid.scrollLeft+grid.clientWidth-w-20,vy2=grid.scrollTop+grid.clientHeight-h-20;
+    x=Math.max(grid.scrollLeft+RH+8,Math.min(x,vx2));y=Math.max(grid.scrollTop+CHH+8,Math.min(y,vy2));
+  }
+  const sw=tbl.offsetWidth||99999,sh=tbl.offsetHeight||99999;
+  x=Math.round(clamp(x,RH,Math.max(RH,sw-w)));y=Math.round(clamp(y,CHH,Math.max(CHH,sh-h)));
+  const o={k:'img',src:src,x:x,y:y,w:w,h:h};
+  snap();objs.push(o);createObjEl(o);markDirty();
+  o._el.focus({preventScroll:true});
+}
+
+/* ---------- άνοιγμα / αποθήκευση ---------- */
+const isHex=v=>typeof v==='string'&&/^#[0-9a-f]{6}$/i.test(v);
+function normalizeState(d){
+  if(!d||!Array.isArray(d.cells))throw new Error('bad');
+  const st={cells:[],merges:[],colW:Array(C).fill(DEF_W),objs:[]};
+  d.cells.forEach(a=>{
+    if(!Array.isArray(a))return;
+    const r=+a[0],c=+a[1],x=a[2];
+    if(!(r>=0&&r<R&&c>=0&&c<C)||!x||typeof x!=='object')return;
+    const o={};
+    if(typeof x.v==='string'&&x.v)o.v=x.v.slice(0,500);
+    if(x.b)o.b=1;if(x.i)o.i=1;if(x.u)o.u=1;
+    if(typeof x.fs==='number'&&x.fs>=8&&x.fs<=96)o.fs=Math.round(x.fs);
+    if(x.a==='l'||x.a==='c'||x.a==='r')o.a=x.a;
+    if(isHex(x.fc))o.fc=x.fc;
+    if(isHex(x.bg))o.bg=x.bg;
+    if(typeof x.d==='string'){const dd=x.d.replace(/[^trbl]/g,'').slice(0,4);if(dd)o.d=dd;}
+    st.cells.push([r,c,o]);
+  });
+  const used=new Set();
+  (Array.isArray(d.merges)?d.merges:[]).forEach(m=>{
+    if(!m)return;
+    const r=+m.r,c=+m.c,rs=+m.rs,cs=+m.cs;
+    if(!(r>=0&&c>=0&&rs>=1&&cs>=1&&rs*cs>1&&r+rs<=R&&c+cs<=C))return;
+    for(let i=r;i<r+rs;i++)for(let j=c;j<c+cs;j++)if(used.has(key(i,j)))return;
+    for(let i=r;i<r+rs;i++)for(let j=c;j<c+cs;j++)used.add(key(i,j));
+    st.merges.push({r:r,c:c,rs:rs,cs:cs});
+  });
+  if(Array.isArray(d.colW))for(let c=0;c<C;c++){const w=+d.colW[c];if(w>=40&&w<=400)st.colW[c]=Math.round(w);}
+  (Array.isArray(d.objs)?d.objs:[]).forEach(o=>{
+    if(!o)return;
+    const x=Math.max(RH,+o.x||RH),y=Math.max(CHH,+o.y||CHH);
+    const w=clamp(+o.w||200,40,2000),h=clamp(+o.h||150,20,1500);
+    if(o.k==='img'){
+      if(typeof o.src==='string'&&/^data:image\/(png|jpe?g|gif|webp);base64,/.test(o.src)&&!/["'<>\s]/.test(o.src))
+        st.objs.push({k:'img',src:o.src,x:x,y:y,w:w,h:h});
+    }else if(o.k==='chart'){
+      const g=o.rg;
+      if(['bar','line','pie'].indexOf(o.type)<0||!g)return;
+      const r1=+g.r1,c1=+g.c1,r2=+g.r2,c2=+g.c2;
+      if(!(r1>=0&&c1>=0&&r2>=r1&&c2>=c1&&r2<R&&c2<C))return;
+      st.objs.push({k:'chart',type:o.type,rg:{r1:r1,c1:c1,r2:r2,c2:c2},title:typeof o.title==='string'?o.title.slice(0,80):'',x:x,y:y,w:clamp(w,200,2000),h:clamp(h,150,1500)});
+    }
+  });
+  return st;
+}
+/* ---------- φύλλα εργασίας (καρτέλες) ---------- */
+const MAXSH=30;
+let sheets=[{name:'Φύλλο 1',state:null,undo:[]}],curSheet=0;
+let fileHandle=null,fileName='',dragSrc=null;
+const emptyState=()=>({cells:[],merges:[],colW:Array(C).fill(DEF_W),objs:[]});
+function stash(){sheets[curSheet].state=serialize();sheets[curSheet].undo=undoStack;}
+function showSheet(i){
+  curSheet=i;undoStack=sheets[i].undo||[];
+  sel={ar:0,ac:0,fr:0,fc:0};
+  loadState(sheets[i].state||emptyState());
+  updateUndoBtn();grid.scrollLeft=0;grid.scrollTop=0;renderTabs();
+}
+function switchSheet(i){
+  if(i===curSheet)return;
+  commitEdit();stash();showSheet(i);focusGrid();
+}
+function addSheet(){
+  if(sheets.length>=MAXSH){toast('Δεν χωράνε άλλα φύλλα');return;}
+  commitEdit();stash();
+  let n=sheets.length+1;while(sheets.some(s=>s.name==='Φύλλο '+n))n++;
+  sheets.push({name:'Φύλλο '+n,state:emptyState(),undo:[]});
+  markDirty();showSheet(sheets.length-1);focusGrid();
+}
+function startRename(i){
+  const el=$('tabs').querySelector('.tab[data-i="'+i+'"]');
+  if(!el||el.querySelector('input'))return;
+  const sp=el.querySelector('.tn');if(!sp)return;
+  el.draggable=false;
+  const inp=document.createElement('input');inp.type='text';inp.className='tabin';inp.value=sheets[i].name;inp.maxLength=30;
+  let done=false;
+  const finish=ok=>{
+    if(done)return;done=true;
+    if(ok){
+      const n=inp.value.trim().slice(0,30);
+      if(n&&n!==sheets[i].name){sheets[i].name=n;markDirty();}
+    }
+    renderTabs();
+  };
+  inp.addEventListener('keydown',e=>{
+    e.stopPropagation();
+    if(e.key==='Enter'){e.preventDefault();finish(true);}
+    else if(e.key==='Escape'){e.preventDefault();finish(false);}
+  });
+  inp.addEventListener('blur',()=>finish(true));
+  ['click','dblclick','mousedown'].forEach(t=>inp.addEventListener(t,e=>e.stopPropagation()));
+  sp.replaceWith(inp);inp.focus();inp.select();
+}
+function moveSheet(from,to){
+  if(to>from)to--;
+  if(to===from||to<0||to>=sheets.length)return;
+  commitEdit();stash();
+  const cur=sheets[curSheet],it=sheets.splice(from,1)[0];
+  sheets.splice(to,0,it);
+  curSheet=sheets.indexOf(cur);
+  markDirty();renderTabs();
+}
+function deleteSheet(i){
+  if(sheets.length<2)return;
+  if(!confirm('Να σβήσω το φύλλο «'+sheets[i].name+'»;'))return;
+  commitEdit();
+  if(i===curSheet){sheets.splice(i,1);showSheet(Math.min(i,sheets.length-1));}
+  else{stash();const cur=sheets[curSheet];sheets.splice(i,1);curSheet=sheets.indexOf(cur);renderTabs();}
+  markDirty();
+}
+function clearDrop(){document.querySelectorAll('#tabs .tab').forEach(x=>x.classList.remove('drop-l','drop-r','dragging'));}
+function renderTabs(){
+  const t=$('tabs');t.innerHTML='';
+  sheets.forEach((sh,i)=>{
+    const b=document.createElement('div');b.className='tab'+(i===curSheet?' on':'');b.dataset.i=i;b.draggable=true;
+    const sp=document.createElement('span');sp.className='tn';sp.textContent=sh.name;b.appendChild(sp);
+    b.title='Κλικ: άνοιγμα φύλλου · Διπλό κλικ: αλλαγή ονόματος · Σύρε για να το μετακινήσεις';
+    b.addEventListener('click',()=>switchSheet(i));
+    if(i===curSheet){
+      const pe=document.createElement('span');pe.className='te';pe.textContent='✎';pe.title='Αλλαγή ονόματος';
+      pe.addEventListener('click',e=>{e.stopPropagation();startRename(i);});b.appendChild(pe);
+    }
+    if(i===curSheet&&sheets.length>1){
+      const x=document.createElement('span');x.className='tx';x.textContent='×';x.title='Σβήσιμο φύλλου';
+      x.addEventListener('click',e=>{e.stopPropagation();deleteSheet(i);});b.appendChild(x);
+    }
+    b.addEventListener('dragstart',e=>{
+      if(b.querySelector('input')){e.preventDefault();return;}
+      dragSrc=i;
+      try{e.dataTransfer.setData('text/plain',String(i));e.dataTransfer.effectAllowed='move';}catch(err){}
+      setTimeout(()=>b.classList.add('dragging'),0);
+    });
+    b.addEventListener('dragover',e=>{
+      if(dragSrc===null)return;
+      e.preventDefault();
+      try{e.dataTransfer.dropEffect='move';}catch(err){}
+      const r=b.getBoundingClientRect(),after=e.clientX>r.left+r.width/2;
+      b.classList.toggle('drop-r',after);b.classList.toggle('drop-l',!after);
+    });
+    b.addEventListener('dragleave',()=>b.classList.remove('drop-l','drop-r'));
+    b.addEventListener('drop',e=>{
+      if(dragSrc===null)return;
+      e.preventDefault();
+      const r=b.getBoundingClientRect(),after=e.clientX>r.left+r.width/2,from=dragSrc;
+      dragSrc=null;clearDrop();
+      moveSheet(from,after?i+1:i);
+    });
+    b.addEventListener('dragend',()=>{dragSrc=null;clearDrop();});
+    t.appendChild(b);
+  });
+  const ad=document.createElement('button');ad.type='button';ad.className='tab add';ad.textContent='＋';ad.title='Νέο φύλλο';
+  ad.addEventListener('mousedown',e=>e.preventDefault());ad.addEventListener('click',addSheet);
+  t.appendChild(ad);
+  const on=t.querySelector('.tab.on');if(on&&on.scrollIntoView)on.scrollIntoView({block:'nearest',inline:'nearest'});
+}
+$('tabs').addEventListener('dblclick',e=>{
+  const tb=e.target.closest('.tab[data-i]');
+  if(tb&&!e.target.closest('.tx,.te,input'))startRename(+tb.dataset.i);
+});
+const FTYPES=[{description:'Αρχείο λογιστικού φύλλου',accept:{'application/json':['.json']}}];
+function buildData(){
+  return JSON.stringify({app:'spreadsheet-kids',version:2,active:curSheet,
+    sheets:sheets.map(s=>Object.assign({name:s.name},s.state))});
+}
+function baseName(n){return String(n||'').replace(/\.json$/i,'');}
+async function writeHandle(h,data){
+  const w=await h.createWritable();
+  await w.write(data);
+  await w.close();
+}
+function downloadData(data){
+  let name=prompt('Με ποιο όνομα να αποθηκευτεί το αρχείο σου;',baseName(fileName)||'το-βιβλίο-μου');
+  if(name===null)return false;
+  name=name.trim().replace(/[\\\/:*?"<>|]+/g,'-')||'βιβλίο';
+  const blob=new Blob([data],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download=name+'.json';
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+  fileName=name+'.json';
+  dirty=false;toast('Το αρχείο αποθηκεύτηκε ✔ (στις Λήψεις του υπολογιστή)');
+  return true;
+}
+async function saveAs(data){
+  if(!window.showSaveFilePicker){downloadData(data);return;}
+  let h;
+  try{
+    h=await window.showSaveFilePicker({suggestedName:(baseName(fileName)||'το-βιβλίο-μου')+'.json',types:FTYPES});
+  }catch(e){
+    if(e&&e.name==='AbortError')return;
+    downloadData(data);return;
+  }
+  try{
+    await writeHandle(h,data);
+    fileHandle=h;fileName=h.name;dirty=false;
+    toast('Το αρχείο αποθηκεύτηκε ✔ «'+h.name+'»');
+  }catch(e){alert('Δεν μπόρεσα να αποθηκεύσω το αρχείο σε αυτή τη θέση. Δοκίμασε άλλον φάκελο.');}
+}
+async function save(){
+  commitEdit();stash();
+  const data=buildData();
+  if(fileHandle){
+    if(!confirm('Θέλεις να αποθηκευτούν οι αλλαγές στο αρχείο «'+fileName+'»;'))return;
+    try{
+      await writeHandle(fileHandle,data);
+      dirty=false;toast('Οι αλλαγές αποθηκεύτηκαν ✔');return;
+    }catch(e){
+      toast('Δεν μπόρεσα να γράψω στο ίδιο αρχείο. Διάλεξε πού να αποθηκευτεί.');
+      fileHandle=null;
+    }
+  }
+  await saveAs(data);
+}
+async function openClick(){
+  commitEdit();
+  if(!window.showOpenFilePicker){$('fileIn').click();return;}
+  let h;
+  try{h=await window.showOpenFilePicker({types:FTYPES,multiple:false});}
+  catch(e){
+    if(e&&e.name==='AbortError')return;
+    $('fileIn').click();return;
+  }
+  try{const f=await h[0].getFile();openFile(f,h[0]);}
+  catch(e){$('fileIn').click();}
+}
+function openFile(f,h){
+  if(!f)return;
+  if(dirty&&!confirm('Το τρέχον αρχείο έχει αλλαγές που δεν αποθηκεύτηκαν. Να ανοίξω το νέο αρχείο παρ’ όλα αυτά;'))return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const d=JSON.parse(r.result);
+      let list;
+      if(d&&Array.isArray(d.sheets)&&d.sheets.length){
+        list=d.sheets.slice(0,MAXSH).map((x,i)=>({name:(typeof x.name==='string'&&x.name.trim()?x.name.trim().slice(0,30):'Φύλλο '+(i+1)),state:normalizeState(x),undo:[]}));
+      }else{
+        list=[{name:'Φύλλο 1',state:normalizeState(d),undo:[]}];
+      }
+      sheets=list;
+      const act=Math.max(0,Math.min(list.length-1,+d.active||0));
+      showSheet(act);dirty=false;
+      fileHandle=h||null;fileName=f.name||'';
+      toast(list.length>1?'Το αρχείο άνοιξε ✔ ('+list.length+' φύλλα)':'Το φύλλο άνοιξε ✔');
+    }catch(e){alert('Αυτό το αρχείο δεν είναι φύλλο που μπορώ να ανοίξω.');}
+  };
+  r.readAsText(f);
+}
+
+/* ---------- ποντίκι ---------- */
+tbl.addEventListener('mousedown',e=>{
+  if(e.button!==0)return;
+  const t=e.target;
+  if(t.classList&&t.classList.contains('cr'))return;
+  const td=t.closest('td'),th=t.closest('th');
+  if(td){
+    const pt=refPoint();
+    if(pt){
+      e.preventDefault();
+      refDrag={r0:+td.dataset.r,c0:+td.dataset.c,start:pt.start,end:pt.end};
+      setRef(refDrag.r0,refDrag.c0,refDrag.r0,refDrag.c0);
+      return;
+    }
+    commitEdit();
+    const r=+td.dataset.r,c=+td.dataset.c;
+    if(e.shiftKey){sel.fr=r;sel.fc=c;}else{sel.ar=sel.fr=r;sel.ac=sel.fc=c;}
+    drag='cell';updateSelUI();focusGrid();
+  }else if(th){
+    commitEdit();
+    if(th.classList.contains('cn')){selectAll();}
+    else if(th.classList.contains('ch')){
+      const c=+th.dataset.c;
+      if(e.shiftKey){sel.fr=R-1;sel.fc=c;}else{sel={ar:0,ac:c,fr:R-1,fc:c};}
+      drag='col';updateSelUI();
+    }else if(th.classList.contains('rh')){
+      const r=+th.dataset.r;
+      if(e.shiftKey){sel.fr=r;sel.fc=C-1;}else{sel={ar:r,ac:0,fr:r,fc:C-1};}
+      drag='row';updateSelUI();
+    }
+    focusGrid();
+  }
+});
+document.addEventListener('mousemove',e=>{
+  if(refDrag){
+    const tt=e.target,td2=tt&&tt.closest?tt.closest('td'):null;
+    if(td2)setRef(refDrag.r0,refDrag.c0,+td2.dataset.r,+td2.dataset.c);
+    return;
+  }
+  if(!drag)return;
+  const gr=grid.getBoundingClientRect();
+  if(e.clientX>gr.right-30)grid.scrollLeft+=20;else if(e.clientX<gr.left+RH+10)grid.scrollLeft-=20;
+  if(e.clientY>gr.bottom-30)grid.scrollTop+=20;else if(e.clientY<gr.top+CHH+10)grid.scrollTop-=20;
+  const t=e.target;if(!t||!t.closest)return;
+  let ch=false;
+  if(drag==='cell'){
+    const td=t.closest('td');
+    if(td){const r=+td.dataset.r,c=+td.dataset.c;if(r!==sel.fr||c!==sel.fc){sel.fr=r;sel.fc=c;ch=true;}}
+  }else if(drag==='col'){
+    const el=t.closest('td,th.ch');
+    if(el&&el.dataset.c!==undefined&&+el.dataset.c!==sel.fc){sel.fc=+el.dataset.c;ch=true;}
+  }else if(drag==='row'){
+    const el=t.closest('td,th.rh');
+    if(el&&el.dataset.r!==undefined&&+el.dataset.r!==sel.fr){sel.fr=+el.dataset.r;ch=true;}
+  }
+  if(ch)updateSelUI();
+});
+document.addEventListener('mouseup',()=>{drag=null;if(refDrag){refDrag=null;if(editing)ed.focus();}});
+tbl.addEventListener('dblclick',e=>{
+  if(!editing&&e.target.closest('td')){startEdit(null);}
+});
+tbl.addEventListener('pointerdown',e=>{
+  const cr=e.target.closest&&e.target.closest('.cr');
+  if(!cr)return;
+  e.preventDefault();e.stopPropagation();commitEdit();
+  const c=+cr.parentNode.dataset.c,sx=e.clientX,ow=colW[c];
+  let moved=false;
+  try{cr.setPointerCapture(e.pointerId);}catch(err){}
+  const mv=ev=>{
+    if(!moved){snap();moved=true;}
+    colW[c]=Math.round(clamp(ow+ev.clientX-sx,40,400));
+    colEls[c].style.width=colW[c]+'px';setTblWidth();
+  };
+  const up=()=>{cr.removeEventListener('pointermove',mv);cr.removeEventListener('pointerup',up);cr.removeEventListener('pointercancel',up);if(moved)markDirty();};
+  cr.addEventListener('pointermove',mv);cr.addEventListener('pointerup',up);cr.addEventListener('pointercancel',up);
+});
+
+/* ---------- πληκτρολόγιο ---------- */
+grid.addEventListener('keydown',e=>{
+  if(e.target!==grid)return;
+  const ctrl=e.ctrlKey||e.metaKey;
+  if(ctrl){
+    if(e.code==='KeyA'){e.preventDefault();selectAll();}
+    else if(e.code==='KeyX'){e.preventDefault();doCopy(true,null);}
+    return;
+  }
+  switch(e.key){
+    case 'ArrowUp':e.preventDefault();moveActive(-1,0,e.shiftKey);break;
+    case 'ArrowDown':e.preventDefault();moveActive(1,0,e.shiftKey);break;
+    case 'ArrowLeft':e.preventDefault();moveActive(0,-1,e.shiftKey);break;
+    case 'ArrowRight':e.preventDefault();moveActive(0,1,e.shiftKey);break;
+    case 'Enter':case 'F2':e.preventDefault();startEdit(null);break;
+    case 'Tab':e.preventDefault();moveActive(0,e.shiftKey?-1:1,false);break;
+    case 'Delete':case 'Backspace':e.preventDefault();clearSel();break;
+    default:
+      if(e.altKey)return;
+      if(e.key.length===1){e.preventDefault();startEdit(e.key);}
+      else if(e.key==='Dead'||e.key==='Process'){startEdit('');}
+  }
+});
+document.addEventListener('keydown',e=>{
+  const ctrl=e.ctrlKey||e.metaKey;
+  if(!ctrl||e.shiftKey||e.altKey)return;
+  if(document.activeElement&&document.activeElement.classList&&document.activeElement.classList.contains('tabin'))return;
+  if(e.code==='KeyS'){e.preventDefault();save();}
+  else if(e.code==='KeyZ'){
+    if(document.activeElement===ed)return;
+    e.preventDefault();commitEdit();undo();
+  }else if(e.code==='KeyB'||e.code==='KeyI'||e.code==='KeyU'){
+    if(document.activeElement&&document.activeElement.closest&&document.activeElement.closest('.obj'))return;
+    e.preventDefault();
+    fmt(e.code==='KeyB'?'b':e.code==='KeyI'?'i':'u');
+  }
+});
+document.addEventListener('copy',e=>{
+  if(document.activeElement!==grid)return;
+  doCopy(false,e);
+});
+document.addEventListener('cut',e=>{
+  if(document.activeElement!==grid)return;
+  doCopy(true,e);
+});
+document.addEventListener('paste',e=>{
+  const cd=e.clipboardData;if(!cd)return;
+  if(document.activeElement&&document.activeElement.classList&&document.activeElement.classList.contains('tabin'))return;
+  let file=null;
+  for(const it of (cd.items||[])){if(it.kind==='file'&&/^image\//.test(it.type)){file=it.getAsFile();break;}}
+  if(file){e.preventDefault();insertImage(file);return;}
+  if(document.activeElement===ed)return;
+  if(document.activeElement!==grid)return;
+  const t=cd.getData('text/plain');
+  e.preventDefault();
+  if(clip&&normT(t)===normT(clip.text))pasteClip(clip);
+  else if(t)pasteText(t);
+});
+grid.addEventListener('dragover',e=>e.preventDefault());
+grid.addEventListener('drop',e=>{
+  e.preventDefault();
+  const f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];
+  if(f&&/^image\//.test(f.type)){
+    const gr=grid.getBoundingClientRect();
+    insertImage(f,{x:e.clientX-gr.left+grid.scrollLeft,y:e.clientY-gr.top+grid.scrollTop});
+  }
+});
+window.addEventListener('dragover',e=>e.preventDefault());
+window.addEventListener('drop',e=>e.preventDefault());
+
+/* ---------- κουμπιά και μενού ---------- */
+SIZES.forEach(s=>{const o=document.createElement('option');o.value=String(s);o.textContent=s;selSize.appendChild(o);});
+selSize.value=String(DEF_FS);
+function closeMenus(except){document.querySelectorAll('.menu.open').forEach(m=>{if(m!==except)m.classList.remove('open');});}
+function bindMenu(btn,m){btn.addEventListener('click',()=>{closeMenus(m);m.classList.toggle('open');});}
+document.addEventListener('click',e=>{if(!e.target.closest('.dd'))closeMenus();});
+function refocus(){if(editing)ed.focus();else focusGrid();}
+function buildPalette(btn,pal,colors,onPick,noneLabel){
+  const g=document.createElement('div');g.className='pgrid';
+  colors.forEach(c=>{
+    const s=document.createElement('button');s.className='psw';s.style.background=c;s.title=c;
+    s.addEventListener('mousedown',e=>e.preventDefault());
+    s.addEventListener('click',()=>{pal.classList.remove('open');onPick(c);refocus();});
+    g.appendChild(s);
+  });
+  pal.appendChild(g);
+  if(noneLabel){
+    const n=document.createElement('button');n.className='more';n.textContent=noneLabel;
+    n.addEventListener('mousedown',e=>e.preventDefault());
+    n.addEventListener('click',()=>{pal.classList.remove('open');onPick(null);refocus();});
+    pal.appendChild(n);
+  }
+  bindMenu(btn,pal);
+}
+buildPalette($('btnFc'),$('fcPal'),TEXT_COLORS,v=>{$('fcSw').style.borderBottomColor=v;fmt('fc',v);});
+buildPalette($('btnFill'),$('fillPal'),FILL_COLORS,v=>{$('fillSw').style.background=v||'#fff';fmt('bg',v);},'Χωρίς χρώμα γεμίσματος');
+$('fillSw').style.background='#ffd43b';
+const ICO_ALL='<svg width="24" height="24" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" fill="none" stroke="#222" stroke-width="2"/><path d="M12 2v20M2 12h20" stroke="#222" stroke-width="2"/></svg>';
+const ICO_OUT='<svg width="24" height="24" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" fill="none" stroke="#222" stroke-width="3"/><path d="M12 2v20M2 12h20" stroke="#ccd" stroke-width="1" stroke-dasharray="2 2"/></svg>';
+const ICO_NONE='<svg width="24" height="24" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" fill="none" stroke="#99a" stroke-width="1.5" stroke-dasharray="3 3"/></svg>';
+[['all',ICO_ALL,'Όλα τα περιγράμματα'],['outer',ICO_OUT,'Εξωτερικό περίγραμμα'],['none',ICO_NONE,'Χωρίς περίγραμμα']].forEach(a=>{
+  const b=document.createElement('button');b.className='mi';
+  b.innerHTML='<span class="mic">'+a[1]+'</span><span>'+a[2]+'</span>';
+  b.addEventListener('click',()=>{closeMenus();doBorder(a[0]);refocus();});
+  $('borderMenu').appendChild(b);
+});
+bindMenu($('btnBorder'),$('borderMenu'));
+[['bar','📊','Γράφημα στηλών'],['line','📈','Γράφημα γραμμών'],['pie','🥧','Κυκλικό γράφημα (πίτα)']].forEach(a=>{
+  const b=document.createElement('button');b.className='mi';
+  b.innerHTML='<span class="mic">'+a[1]+'</span><span>'+a[2]+'</span>';
+  b.addEventListener('click',()=>{closeMenus();addChart(a[0]);});
+  $('chartMenu').appendChild(b);
+});
+bindMenu($('btnChart'),$('chartMenu'));
+document.querySelectorAll('button.tool').forEach(b=>b.addEventListener('mousedown',e=>e.preventDefault()));
+bB.addEventListener('click',()=>{fmt('b');refocus();});
+bI.addEventListener('click',()=>{fmt('i');refocus();});
+bU.addEventListener('click',()=>{fmt('u');refocus();});
+$('bAl').addEventListener('click',()=>{fmt('a','l');refocus();});
+$('bAc').addEventListener('click',()=>{fmt('a','c');refocus();});
+$('bAr').addEventListener('click',()=>{fmt('a','r');refocus();});
+selSize.addEventListener('change',()=>{fmt('fs',+selSize.value);refocus();});
+$('btnMerge').addEventListener('click',()=>{doMerge();focusGrid();});
+$('btnUndo').addEventListener('click',()=>{commitEdit();undo();focusGrid();});
+$('btnSave').addEventListener('click',save);
+$('btnOpen').addEventListener('click',openClick);
+$('fileIn').addEventListener('change',e=>{openFile(e.target.files[0],null);e.target.value='';});
+$('btnImg').addEventListener('click',()=>{commitEdit();$('imgIn').click();});
+$('imgIn').addEventListener('change',e=>{insertImage(e.target.files[0]);e.target.value='';});
+window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue='';}});
+
+/* ---------- μενού δεξιού κλικ ---------- */
+const ctxEl=$('ctx');
+function hideCtx(){ctxEl.classList.remove('open');}
+[['cut','✂️','Αποκοπή','Ctrl+X'],['copy','📄','Αντιγραφή','Ctrl+C'],['paste','📋','Επικόλληση','Ctrl+V'],['sep'],['clear','🧹','Διαγραφή περιεχομένου','Del']].forEach(a=>{
+  if(a[0]==='sep'){const d=document.createElement('div');d.className='sep';ctxEl.appendChild(d);return;}
+  const b=document.createElement('button');b.className='mi';
+  b.innerHTML='<span class="mic">'+a[1]+'</span><span>'+a[2]+'</span><span class="kb">'+a[3]+'</span>';
+  b.addEventListener('mousedown',e=>e.preventDefault());
+  b.addEventListener('click',()=>{
+    hideCtx();
+    if(a[0]==='cut')doCopy(true,null);
+    else if(a[0]==='copy')doCopy(false,null);
+    else if(a[0]==='paste')pasteClick();
+    else clearSel();
+    focusGrid();
+  });
+  ctxEl.appendChild(b);
+});
+tbl.addEventListener('contextmenu',e=>{
+  const td=e.target.closest('td'),th=e.target.closest('th');
+  if(!td&&!(th&&(th.classList.contains('ch')||th.classList.contains('rh'))))return;
+  e.preventDefault();
+  commitEdit();
+  const rc=normRect();
+  if(td){
+    const r=+td.dataset.r,c=+td.dataset.c;
+    if(!(r>=rc.r1&&r<=rc.r2&&c>=rc.c1&&c<=rc.c2)){sel.ar=sel.fr=r;sel.ac=sel.fc=c;updateSelUI();}
+  }else if(th.classList.contains('ch')){
+    const c=+th.dataset.c;
+    if(!(c>=rc.c1&&c<=rc.c2&&rc.r1===0&&rc.r2===R-1)){sel={ar:0,ac:c,fr:R-1,fc:c};updateSelUI();}
+  }else{
+    const r=+th.dataset.r;
+    if(!(r>=rc.r1&&r<=rc.r2&&rc.c1===0&&rc.c2===C-1)){sel={ar:r,ac:0,fr:r,fc:C-1};updateSelUI();}
+  }
+  focusGrid();
+  ctxEl.classList.add('open');
+  const w=ctxEl.offsetWidth,h=ctxEl.offsetHeight;
+  ctxEl.style.left=Math.max(4,Math.min(e.clientX,window.innerWidth-w-6))+'px';
+  ctxEl.style.top=Math.max(4,Math.min(e.clientY,window.innerHeight-h-6))+'px';
+});
+document.addEventListener('mousedown',e=>{if(!e.target.closest('#ctx'))hideCtx();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')hideCtx();});
+grid.addEventListener('scroll',hideCtx);
+window.addEventListener('resize',hideCtx);
+window.addEventListener('blur',hideCtx);
+
+/* ---------- πλήρης οθόνη ---------- */
+const fsBtn=$('fsBtn'),rootEl=document.documentElement;
+const fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+fsBtn.addEventListener('click',()=>{
+  try{
+    if(fsEl()){(document.exitFullscreen||document.webkitExitFullscreen).call(document);}
+    else{(rootEl.requestFullscreen||rootEl.webkitRequestFullscreen).call(rootEl);}
+  }catch(e){}
+});
+function fsUpd(){
+  const on=!!fsEl();
+  rootEl.classList.toggle('is-fs',on);
+  fsBtn.setAttribute('aria-label',on?'Έξοδος από πλήρη οθόνη':'Πλήρης οθόνη');
+  fsBtn.title=on?'Έξοδος από πλήρη οθόνη':'Πλήρης οθόνη';
+}
+document.addEventListener('fullscreenchange',fsUpd);
+document.addEventListener('webkitfullscreenchange',fsUpd);
+
+buildTable();updateSelUI();updateUndoBtn();renderTabs();
+try{focusGrid();}catch(e){}
+window.__sheet={get cells(){return cells;},get merges(){return merges;},get objs(){return objs;},sel:sel,serialize:serialize};
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Φτιάξε την παρουσίασή σου</title>
+<style>
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{display:flex;flex-direction:column;font-family:"Segoe UI",Arial,sans-serif;background:#dfe3ee;color:#222;user-select:none;-webkit-user-select:none;overflow:hidden}
+#top{background:linear-gradient(90deg,#4c6ef5,#7048e8);color:#fff;padding:6px 16px;font-size:18px;font-weight:700}
+#ribbon{background:#f4f6fb;border-bottom:2px solid #c9cfe3;display:flex;flex-wrap:wrap;padding:6px 6px;row-gap:5px}
+.grp{display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:0 10px;border-right:3px solid #8f9bc4}
+.grp:last-child{border-right:0}
+.row{display:flex;gap:6px;align-items:center}
+.stack{display:flex;flex-direction:column;gap:5px}
+.lbl{font-size:11px;color:#667;margin-top:3px}
+.tool{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:66px;height:54px;padding:4px 8px;border:1px solid #b9c2dd;background:#fff;border-radius:8px;font-size:12px;line-height:1.15;text-align:center;cursor:pointer;position:relative;font-family:inherit;color:#222}
+.tool .ico{font-size:20px;line-height:1.1}
+.tool:hover{background:#e7ecff}
+.tool.on{background:#cfd9ff;border-color:#4c6ef5}
+.tool.sm{min-width:40px;width:40px;height:36px;font-size:18px;padding:0}
+.tool.sm.wide{width:46px}
+.tool.lab{min-width:62px;height:54px;padding:2px 6px;font-size:11px}
+.tool.lab .ico{font-size:18px;line-height:1.1}
+select{height:34px;font-size:14px;border-radius:6px;border:1px solid #b9c2dd;padding:0 4px;background:#fff;font-family:inherit;cursor:pointer}
+#selFont{width:150px}
+#selSize{width:68px}
+input[type=color].cover{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:0;padding:0}
+.sw{display:block;font-weight:700;font-size:17px;line-height:1;border-bottom:5px solid #e03131}
+.bgsw{display:block;width:22px;height:16px;border:1px solid #667;border-radius:3px;background:#ffd43b}
+.dd{position:relative}
+.menu{display:none;position:absolute;top:100%;left:0;margin-top:5px;background:#fff;border:1px solid #b9c2dd;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.25);padding:6px;z-index:50;width:270px}
+.menu.open{display:block}
+.mi{display:flex;align-items:center;gap:10px;width:100%;padding:7px 8px;border:0;background:none;border-radius:8px;font-size:14px;font-family:inherit;cursor:pointer;text-align:left}
+.mi:hover{background:#e7ecff}
+.pal{width:204px;padding:10px}
+.pgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.psw{height:34px;border-radius:7px;border:2px solid #fff;outline:1px solid #99a;cursor:pointer;padding:0}
+.psw:hover{outline:3px solid #4c6ef5}
+.more{position:relative;display:block;margin-top:9px;padding:7px;text-align:center;font-size:13px;border:1px solid #b9c2dd;border-radius:8px;background:#f4f6fb;cursor:pointer}
+.more:hover{background:#e7ecff}
+.tool.dis{opacity:.45}
+.ctx{display:none;position:fixed;z-index:200;background:#fff;border:1px solid #b9c2dd;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.28);padding:6px;min-width:250px}
+.ctx.open{display:block}
+#main{flex:1;display:flex;min-height:0}
+#thumbs{width:228px;flex:none;overflow-y:auto;padding:10px 8px;background:#eceff7;border-right:2px solid #c9cfe3}
+.thumb{display:flex;gap:6px;align-items:flex-start;margin-bottom:12px;cursor:pointer}
+.num{width:18px;font-size:12px;color:#556;text-align:right;padding-top:2px}
+.tv{width:180px;height:101.25px;overflow:hidden;position:relative;background:#fff;border:1px solid #99a;border-radius:3px;flex:none}
+.thumb.cur .tv{outline:3px solid #4c6ef5}
+.thumb.cur .num{color:#4c6ef5;font-weight:700}
+.tv .slide{position:absolute;left:0;top:0;transform:scale(.1875);pointer-events:none}
+#work{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;padding:20px;overflow:auto}
+#wrap{position:relative;flex:none;background:#fff;box-shadow:0 4px 18px rgba(0,0,0,.3);overflow:hidden}
+#wrap .slide{position:absolute;left:0;top:0}
+.slide{position:relative;width:960px;height:540px;overflow:hidden;transform-origin:0 0}
+.box{position:absolute}
+.slide:focus{outline:none}
+.txt{display:block;padding:6px 10px;line-height:1.25;overflow-wrap:anywhere;outline:none}
+.edit .txt{cursor:text;user-select:text;-webkit-user-select:text;outline:2px dashed #9fb0f0}
+.txt ul,.txt ol{margin:0;padding-left:1.2em}
+.txt li{margin-bottom:.45em}
+.txt li:last-child{margin-bottom:0}
+.edit .box:hover .txt{outline:2px dashed #8aa4ff}
+.edit .txt:focus{outline:2px solid #4c6ef5}
+.edit .txt:empty::before{content:attr(data-ph);color:#9aa3b5;font-weight:normal;font-style:italic;text-decoration:none;pointer-events:none}
+.grip,.del{display:none;position:absolute;top:-26px;width:26px;height:24px;align-items:center;justify-content:center;border-radius:5px;font-size:15px;color:#fff;cursor:pointer;touch-action:none}
+.grip{left:0;background:#4c6ef5;cursor:move}
+.del{right:0;background:#e03131}
+.box:hover>.grip,.box:focus-within>.grip,.box:hover>.del,.box:focus-within>.del{display:flex}
+.box.pic{outline:none}
+.box.pic img{display:block;width:100%;height:100%;pointer-events:none;-webkit-user-drag:none;user-select:none}
+.edit .box.pic{cursor:move}
+.edit .box.pic:hover{outline:2px dashed #8aa4ff}
+.edit .box.pic:focus{outline:2px solid #4c6ef5}
+.rsz{display:none;position:absolute;width:16px;height:16px;background:#4c6ef5;border:2px solid #fff;border-radius:4px;touch-action:none;z-index:2}
+.rsz.nw{left:-8px;top:-8px;cursor:nwse-resize}
+.rsz.ne{right:-8px;top:-8px;cursor:nesw-resize}
+.rsz.sw{left:-8px;bottom:-8px;cursor:nesw-resize}
+.rsz.se{right:-8px;bottom:-8px;cursor:nwse-resize}
+.box:hover>.rsz,.box:focus-within>.rsz{display:block}
+#status{display:flex;justify-content:space-between;gap:12px;padding:5px 14px;background:#f4f6fb;border-top:1px solid #c9cfe3;font-size:13px;color:#445}
+#toast{position:fixed;left:50%;bottom:48px;transform:translateX(-50%);background:#333;color:#fff;padding:10px 18px;border-radius:20px;font-size:15px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:1000}
+#toast.show{opacity:1}
+.play{position:fixed;inset:0;background:#000;z-index:999;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.play .hold{position:relative;overflow:hidden}
+.play .slide{position:absolute;left:0;top:0}
+.play .cnt{position:fixed;bottom:8px;right:14px;color:#889;font-size:14px}
+.play .x{position:fixed;top:8px;right:12px;background:#333;color:#fff;border:0;border-radius:50%;width:36px;height:36px;font-size:18px;cursor:pointer}
+#top{position:relative;padding-right:56px}
+.fsbtn{position:absolute;top:50%;right:10px;transform:translateY(-50%);width:32px;height:30px;padding:0;border:1px solid rgba(255,255,255,.65);border-radius:7px;background:rgba(255,255,255,.18);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.fsbtn:hover{background:rgba(255,255,255,.38)}
+.fsbtn:focus-visible{outline:3px solid #ffd43b;outline-offset:1px}
+.fsbtn svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}
+.fsbtn .ico-exit{display:none}
+.is-fs .fsbtn .ico-enter{display:none}
+.is-fs .fsbtn .ico-exit{display:block}
+@media (max-width:1260px){
+.grp{padding:0 6px}
+.row{gap:4px}
+.tool{min-width:58px;padding:4px 5px}
+.tool.lab{min-width:56px;padding:2px 4px}
+#selSize{width:60px}
+}
+.pz{position:fixed;width:140px;height:48px;z-index:150;background:transparent;outline:none;color:transparent;caret-color:transparent;overflow:hidden;cursor:default}
+</style>
+</head>
+<body>
+<div id="top">🎨 Φτιάξε την παρουσίασή σου
+  <button class="fsbtn" id="fsBtn" type="button" aria-label="Πλήρης οθόνη" title="Πλήρης οθόνη">
+    <svg class="ico-enter" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9V3h6M15 3h6v6M21 15v6h-6M9 21H3v-6"/></svg>
+    <svg class="ico-exit" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3v6H3M21 9h-6V3M15 21v-6h6M3 15h6v6"/></svg>
+  </button>
+</div>
+
+<div id="ribbon">
+  <div class="grp">
+    <div class="row">
+      <button class="tool" id="btnOpen" title="Άνοιγμα παρουσίασης"><span class="ico">📂</span>Άνοιγμα</button>
+      <button class="tool" id="btnSave" title="Αποθήκευση παρουσίασης"><span class="ico">💾</span>Αποθήκευση</button>
+    </div>
+    <div class="lbl">Αρχείο</div>
+  </div>
+
+  <div class="grp">
+    <div class="row">
+      <button class="tool dis" id="btnUndo" title="Αναίρεση (Ctrl+Z)"><span class="ico">↩️</span>Αναίρεση</button>
+    </div>
+    <div class="lbl">Επεξεργασία</div>
+  </div>
+
+  <div class="grp">
+    <div class="row">
+      <div class="dd">
+        <button class="tool" id="btnNew" title="Νέα διαφάνεια"><span class="ico">➕</span>Νέα διαφάνεια ▾</button>
+        <div class="menu" id="newMenu"></div>
+      </div>
+      <button class="tool" id="btnDel" title="Διαγραφή διαφάνειας"><span class="ico">🗑️</span>Διαγραφή διαφάνειας</button>
+    </div>
+    <div class="lbl">Διαφάνειες</div>
+  </div>
+
+  <div class="grp">
+    <div class="stack">
+      <div class="row">
+        <select id="selSize" title="Μέγεθος γραμμάτων"></select>
+        <button class="tool lab" id="bB" title="Έντονα"><span class="ico"><b>B</b></span>Έντονα</button>
+        <button class="tool lab" id="bI" title="Πλάγια"><span class="ico"><i>I</i></span>Πλάγια</button>
+        <button class="tool lab" id="bU" title="Υπογράμμιση"><span class="ico"><u>U</u></span>Υπογράμμιση</button>
+        <div class="dd"><button class="tool lab" id="btnFc" title="Χρώμα γραμμάτων"><span class="ico"><span class="sw" id="fcSw">A</span></span>Χρώμα γραμμάτων</button><div class="menu pal" id="fcPal"></div></div>
+      </div>
+    </div>
+    <div class="lbl">Γραμματοσειρά</div>
+  </div>
+
+  <div class="grp">
+    <div class="row">
+      <div class="dd"><button class="tool" id="btnBg" title="Χρώμα φόντου διαφάνειας"><span class="ico"><span class="bgsw" id="bgSw"></span></span>Χρώμα φόντου</button><div class="menu pal" id="bgPal"></div></div>
+    </div>
+    <div class="lbl">Φόντο</div>
+  </div>
+
+  <div class="grp">
+    <div class="row">
+      <button class="tool" id="btnImg" title="Εισαγωγή εικόνας από τον υπολογιστή"><span class="ico">🖼️</span>Εικόνα</button>
+      <button class="tool" id="btnPlay" title="Παρουσίαση σε πλήρη οθόνη"><span class="ico">▶️</span>Παρουσίαση</button>
+    </div>
+    <div class="lbl">Εισαγωγή και προβολή</div>
+  </div>
+</div>
+
+<div id="main">
+  <div id="thumbs"></div>
+  <div id="work"><div id="wrap"></div></div>
+</div>
+<div id="status"><span id="stTxt"></span><span>💡 Αν δεν έχεις επιλέξει λέξεις, η αλλαγή γίνεται σε ολόκληρο το πλαίσιο. Εικόνα: κουμπί «Εικόνα», σύρσιμο αρχείου ή επικόλληση (Ctrl+V ή δεξί κλικ σε κενό σημείο). Σύρε την εικόνα για να τη μετακινήσεις και τράβα τις γωνίες της για να αλλάξει μέγεθος.</span></div>
+<div class="ctx" id="ctx"></div>
+<div id="toast"></div>
+<input type="file" id="fileIn" accept=".json,application/json" hidden>
+<input type="file" id="imgIn" accept="image/*" hidden>
+
+<script>
+(function(){
+const W=960,H=540;
+const $=id=>document.getElementById(id);
+const FONTS=[
+ {n:'Arial',css:'Arial, Helvetica, sans-serif'},
+ {n:'Comic Sans MS',css:'"Comic Sans MS", "Comic Sans", cursive'},
+ {n:'Times New Roman',css:'"Times New Roman", Times, serif'},
+ {n:'Verdana',css:'Verdana, Geneva, sans-serif'},
+ {n:'Georgia',css:'Georgia, serif'},
+ {n:'Courier New',css:'"Courier New", Courier, monospace'}
+];
+const SIZES=[16,20,24,28,32,40,48,60,72,96];
+const KEYS=['fontFamily','fontSize','color','fontWeight','fontStyle','textDecoration','textAlign'];
+const BASE={fontFamily:FONTS[1].css,fontSize:'32px',color:'#222222',fontWeight:'normal',fontStyle:'normal',textDecoration:'none',textAlign:'left'};
+const LAY=[['title','Διαφάνεια τίτλου'],['one','Τίτλος και ένα αντικείμενο'],['two','Τίτλος και δύο αντικείμενα'],['blank','Κενή διαφάνεια']];
+const ICONS={
+ title:'<svg width="44" height="28" viewBox="0 0 44 28"><rect x="1" y="1" width="42" height="26" rx="2" fill="#fff" stroke="#667"/><rect x="9" y="8" width="26" height="5" fill="#667"/><rect x="14" y="17" width="16" height="3" fill="#aab"/></svg>',
+ one:'<svg width="44" height="28" viewBox="0 0 44 28"><rect x="1" y="1" width="42" height="26" rx="2" fill="#fff" stroke="#667"/><rect x="6" y="4" width="32" height="4" fill="#667"/><rect x="6" y="11" width="32" height="12" fill="#aab"/></svg>',
+ two:'<svg width="44" height="28" viewBox="0 0 44 28"><rect x="1" y="1" width="42" height="26" rx="2" fill="#fff" stroke="#667"/><rect x="6" y="4" width="32" height="4" fill="#667"/><rect x="6" y="11" width="15" height="12" fill="#aab"/><rect x="23" y="11" width="15" height="12" fill="#aab"/></svg>',
+ blank:'<svg width="44" height="28" viewBox="0 0 44 28"><rect x="1" y="1" width="42" height="26" rx="2" fill="#fff" stroke="#667"/></svg>'
+};
+const PROP={font:'fontFamily',size:'fontSize',color:'color',bold:'fontWeight',italic:'fontStyle',underline:'textDecoration'};
+
+let slides=[], cur=0, scale=1, activeBox=null, savedRange=null, dirty=false, thumbTimer=null;
+let undoStack=[], lastKey=null, lastT=0, burstT=0, inFmt=false, clickPos=null;
+const TEXT_COLORS=['#000000','#e03131','#f76707','#fcc419','#40c057','#1c7ed6','#7048e8','#ffffff','#868e96','#f06595','#a5622a','#099268','#15aabf','#364fc7','#862e9c','#5c940d'];
+const BG_COLORS=['#ffffff','#ffdeeb','#ffe8cc','#fff3bf','#d3f9d8','#d0ebff','#e5dbff','#e7f27a','#e9ecef','#ffc9c9','#f1dfc8','#c3fae8','#c5f6fa','#bac8ff','#f3d9fa','#495057'];
+
+const wrap=$('wrap'), thumbs=$('thumbs'), work=$('work');
+const selSize=$('selSize');
+const bB=$('bB'), bI=$('bI'), bU=$('bU');
+
+/* ---------- δεδομένα ---------- */
+function mk(x,y,w,h,ph,st,bul){return{x,y,w,h,ph,html:'',st:Object.assign({},BASE,st||{}),bul:!!bul};}
+function makeSlide(layout){
+  const T=()=>mk(60,36,840,96,'Κάνε κλικ για τον τίτλο',{fontSize:'48px',fontWeight:'bold',textAlign:'center'});
+  let boxes=[];
+  if(layout==='title') boxes=[
+    mk(80,160,800,130,'Κάνε κλικ για τον τίτλο',{fontSize:'60px',fontWeight:'bold',textAlign:'center'}),
+    mk(160,310,640,100,'Κάνε κλικ για τον υπότιτλο',{fontSize:'32px',textAlign:'center'})];
+  else if(layout==='one') boxes=[T(),mk(80,160,800,340,'Κάνε κλικ για να γράψεις',{},true)];
+  else if(layout==='two') boxes=[T(),
+    mk(60,160,410,340,'Κάνε κλικ για να γράψεις',{fontSize:'28px'},true),
+    mk(490,160,410,340,'Κάνε κλικ για να γράψεις',{fontSize:'28px'},true)];
+  return{bg:'#ffffff',boxes};
+}
+function readSt(el){const o={};KEYS.forEach(k=>{o[k]=el.style[k]||BASE[k];});return o;}
+function clean(html){
+  const t=document.createElement('template');t.innerHTML=html;
+  t.content.querySelectorAll('script,iframe,object,embed,link,style,meta,form,base').forEach(n=>n.remove());
+  t.content.querySelectorAll('*').forEach(n=>{[...n.attributes].forEach(a=>{if(/^on/i.test(a.name)||/javascript:/i.test(a.value))n.removeAttribute(a.name);});});
+  return t.innerHTML;
+}
+function normalize(arr){
+  if(!Array.isArray(arr)||!arr.length)throw new Error('bad');
+  return arr.map(s=>({
+    bg:/^#[0-9a-f]{6}$/i.test(s&&s.bg)?s.bg:'#ffffff',
+    boxes:(Array.isArray(s&&s.boxes)?s.boxes:[]).map(b=>{
+      if(b&&b.img){
+        if(typeof b.src==='string'&&/^data:image\/(png|jpe?g|gif|webp);base64,/.test(b.src)&&!/["'<>\s]/.test(b.src))
+          return{img:true,src:b.src,x:+b.x||0,y:+b.y||0,w:+b.w||200,h:+b.h||150};
+        return null;
+      }
+      const st={};
+      KEYS.forEach(k=>{const v=b.st&&b.st[k];st[k]=(typeof v==='string'&&v.length<90&&!/[;{}<>]|url\(/i.test(v))?v:BASE[k];});
+      return{x:+b.x||0,y:+b.y||0,w:+b.w||300,h:+b.h||100,
+        ph:typeof b.ph==='string'?b.ph.slice(0,80):'Κάνε κλικ για να γράψεις',
+        html:clean(String(b.html||'')),st,bul:!!b.bul};
+    }).filter(Boolean)
+  }));
+}
+
+/* ---------- εμφάνιση ---------- */
+function buildSlide(s,edit){
+  const d=document.createElement('div');
+  d.className='slide'+(edit?' edit':'');
+  d.style.background=s.bg;
+  s.boxes.forEach((b,i)=>d.appendChild(buildBox(b,i,edit)));
+  return d;
+}
+function buildBox(b,i,edit){
+  const w=document.createElement('div');w.className='box';
+  w.style.left=b.x+'px';w.style.top=b.y+'px';w.style.width=b.w+'px';
+  if(b.img)return buildPic(w,b,i,edit);
+  const t=document.createElement('div');t.className='txt';
+  t.innerHTML=b.html;
+  Object.assign(t.style,b.st);
+  t.style.minHeight=b.h+'px';
+  if(edit){
+    t._b=b;
+    t.contentEditable='true';t.spellcheck=false;
+    t.dataset.ph=b.ph||'Κάνε κλικ για να γράψεις';
+    const bullet=()=>{
+      if(!b.bul||t.innerHTML!=='')return;
+      t.innerHTML='<ul><li><br></li></ul>';
+      const li=t.querySelector('li'),r=document.createRange();
+      r.setStart(li,0);r.collapse(true);
+      const sl=getSelection();sl.removeAllRanges();sl.addRange(r);
+    };
+    t.addEventListener('focus',()=>{activeBox=t;bullet();refreshToolbar();});
+    t.addEventListener('blur',()=>{
+      if(b.bul&&t.querySelector('ul')&&t.textContent.trim()===''){t.innerHTML='';b.html='';}
+    });
+    t.addEventListener('beforeinput',e=>{
+      if(e.inputType==='historyUndo'||e.inputType==='historyRedo'){
+        e.preventDefault();
+        if(e.inputType==='historyUndo')undo();
+        return;
+      }
+      if(!inFmt)snap(b);
+    });
+    t.addEventListener('input',()=>{
+      if(t.innerHTML==='<br>')t.innerHTML='';
+      bullet();
+      syncBox(t);
+    });
+    t.addEventListener('paste',e=>{
+      if(handleImagePaste(e))return;
+      e.preventDefault();
+      const txt=(e.clipboardData||window.clipboardData).getData('text/plain');
+      document.execCommand('insertText',false,txt);
+    });
+    t.addEventListener('drop',e=>e.preventDefault());
+    const g=document.createElement('div');g.className='grip';g.textContent='✥';g.title='Σύρε για να μετακινήσεις το πλαίσιο';
+    g.addEventListener('pointerdown',e=>startDrag(e,g,w,b));
+    const x=document.createElement('div');x.className='del';x.textContent='✕';x.title='Διαγραφή πλαισίου';
+    x.addEventListener('click',()=>{
+      if(t.textContent.trim()&&!confirm('Να διαγραφεί αυτό το πλαίσιο με το κείμενό του;'))return;
+      snap();
+      slides[cur].boxes.splice(i,1);
+      activeBox=null;savedRange=null;
+      renderStage();renderThumb(cur);markDirty();
+    });
+    w.appendChild(g);w.appendChild(x);
+  }
+  w.appendChild(t);
+  return w;
+}
+function buildPic(w,b,i,edit){
+  w.classList.add('pic');w.style.height=b.h+'px';
+  const im=document.createElement('img');im.src=b.src;im.alt='';im.draggable=false;
+  w.appendChild(im);
+  if(edit){
+    w.tabIndex=0;
+    w.addEventListener('pointerdown',e=>{
+      if(e.target!==w)return;
+      activeBox=null;
+      w.focus();
+      startDrag(e,w,w,b);
+    });
+    const x=document.createElement('div');x.className='del';x.textContent='✕';x.title='Διαγραφή εικόνας';
+    const remove=()=>{
+      snap();
+      slides[cur].boxes.splice(i,1);
+      activeBox=null;savedRange=null;
+      renderStage();renderThumb(cur);markDirty();
+    };
+    x.addEventListener('click',remove);
+    w.addEventListener('keydown',e=>{
+      if((e.key==='Delete'||e.key==='Backspace')&&e.target===w){e.preventDefault();remove();}
+    });
+    w.appendChild(x);
+    ['nw','ne','sw','se'].forEach(c=>{
+      const r=document.createElement('div');r.className='rsz '+c;r.title='Σύρε για να αλλάξεις το μέγεθος';
+      r.addEventListener('pointerdown',e=>startResize(e,r,w,b,c));
+      w.appendChild(r);
+    });
+  }
+  return w;
+}
+function startResize(e,r,w,b,c){
+  e.preventDefault();e.stopPropagation();
+  const sx=e.clientX,sy=e.clientY,ox=b.x,oy=b.y,ow=b.w,oh=b.h,ratio=oh/ow;
+  const west=c[1]==='w',north=c[0]==='n';
+  let moved=false;
+  r.setPointerCapture(e.pointerId);
+  const mv=ev=>{
+    if(!moved){snap();moved=true;}
+    const dx=(ev.clientX-sx)/scale,dy=(ev.clientY-sy)/scale;
+    const c1=ow+(west?-dx:dx),c2=(oh+(north?-dy:dy))/ratio;
+    let nw=Math.abs(c1-ow)>Math.abs(c2-ow)?c1:c2;
+    const maxW=Math.min(west?ox+ow:W-ox,north?(oy+oh-28)/ratio:(H-oy)/ratio);
+    nw=Math.round(Math.max(40,Math.min(maxW,nw)));
+    const nh=Math.max(10,Math.round(nw*ratio));
+    b.w=nw;b.h=nh;
+    b.x=west?ox+ow-nw:ox;
+    b.y=north?oy+oh-nh:oy;
+    w.style.left=b.x+'px';w.style.top=b.y+'px';
+    w.style.width=b.w+'px';w.style.height=b.h+'px';
+  };
+  const up=()=>{r.removeEventListener('pointermove',mv);r.removeEventListener('pointerup',up);r.removeEventListener('pointercancel',up);markDirty();};
+  r.addEventListener('pointermove',mv);r.addEventListener('pointerup',up);r.addEventListener('pointercancel',up);
+}
+function insertImage(file){
+  if(!file)return;
+  const url=URL.createObjectURL(file);
+  const im=new Image();
+  im.onload=()=>{
+    URL.revokeObjectURL(url);
+    const w0=im.naturalWidth||800,h0=im.naturalHeight||600;
+    const k=Math.min(1,1280/Math.max(w0,h0));
+    const cw=Math.max(1,Math.round(w0*k)),ch=Math.max(1,Math.round(h0*k));
+    const c=document.createElement('canvas');c.width=cw;c.height=ch;
+    const ctx=c.getContext('2d');
+    const jpg=file.type==='image/jpeg';
+    if(jpg){ctx.fillStyle='#ffffff';ctx.fillRect(0,0,cw,ch);}
+    ctx.drawImage(im,0,0,cw,ch);
+    let src;
+    try{src=jpg?c.toDataURL('image/jpeg',0.88):c.toDataURL('image/png');}
+    catch(e){alert('Δεν μπόρεσα να χρησιμοποιήσω αυτή την εικόνα.');return;}
+    placeImage(src,cw,ch);
+  };
+  im.onerror=()=>{
+    URL.revokeObjectURL(url);
+    alert('Δεν μπόρεσα να ανοίξω αυτό το αρχείο ως εικόνα. Δοκίμασε μια εικόνα τύπου JPG, PNG, GIF ή WebP.');
+  };
+  im.src=url;
+}
+function placeImage(src,iw,ih){
+  const s=slides[cur];
+  const empty=b=>!b.img&&b.ph==='Κάνε κλικ για να γράψεις'&&String(b.html).replace(/<[^>]*>|&nbsp;/g,'').trim()==='';
+  const pos=clickPos;
+  const emptyAny=b=>!b.img&&String(b.html).replace(/<[^>]*>|&nbsp;/g,'').trim()==='';
+  let idx=-1,area={x:180,y:90,w:600,h:360};
+  const ai=(!pos&&activeBox&&activeBox.isConnected&&activeBox._b)?s.boxes.indexOf(activeBox._b):-1;
+  if(ai>=0){
+    const p=s.boxes[ai];area={x:p.x,y:p.y,w:p.w,h:p.h};
+    if(emptyAny(p))idx=ai;
+  }else if(!pos){
+    idx=s.boxes.findIndex(empty);
+    if(idx>=0){const p=s.boxes[idx];area={x:p.x,y:p.y,w:p.w,h:p.h};}
+  }
+  const k=Math.min(area.w/iw,area.h/ih,2);
+  const w=Math.max(40,Math.round(iw*k)),h=Math.max(10,Math.round(ih*k));
+  let nx=Math.round(area.x+(area.w-w)/2),ny=Math.round(area.y+(area.h-h)/2);
+  if(pos){nx=Math.round(pos.x-w/2);ny=Math.round(pos.y-h/2);}
+  nx=Math.max(0,Math.min(W-w,nx));ny=Math.max(28,Math.min(H-h,ny));
+  const nb={img:true,src,x:nx,y:ny,w,h};
+  snap();
+  if(idx>=0)s.boxes.splice(idx,1,nb);else s.boxes.push(nb);
+  activeBox=null;savedRange=null;
+  renderStage();renderThumb(cur);markDirty();
+}
+function insertImageUrl(src){
+  const fail=()=>alert('Δεν μπόρεσα να πάρω αυτή την εικόνα από το διαδίκτυο.\nΔοκίμασε δεξί κλικ στην εικόνα → «Αποθήκευση εικόνας» και μετά χρησιμοποίησε το κουμπί «Εικόνα» ή σύρε το αρχείο πάνω στη διαφάνεια.');
+  if(!/^(data:image\/|https?:)/i.test(src)){fail();return;}
+  fetch(src).then(r=>{if(!r.ok)throw new Error('http');return r.blob();}).then(b=>{
+    if(!/^image\//.test(b.type))throw new Error('type');
+    insertImage(b);
+  }).catch(fail);
+}
+function handleImagePaste(e){
+  const cd=e.clipboardData;
+  if(!cd)return false;
+  let file=null;
+  for(const it of (cd.items||[])){
+    if(it.kind==='file'&&/^image\//.test(it.type)){file=it.getAsFile();break;}
+  }
+  if(!file&&cd.files&&cd.files.length&&/^image\//.test(cd.files[0].type))file=cd.files[0];
+  if(file){e.preventDefault();e.stopPropagation();insertImage(file);return true;}
+  const html=cd.getData('text/html');
+  if(html){
+    const m=html.match(/<img[^>]+src=["']([^"']+)["']/i);
+    if(m){
+      const src=m[1].replace(/&amp;/g,'&');
+      const txt=cd.getData('text/plain').trim();
+      if(txt===''||txt===src){e.preventDefault();e.stopPropagation();insertImageUrl(src);return true;}
+    }
+  }
+  return false;
+}
+function renderStage(){
+  clickPos=null;
+  wrap.innerHTML='';
+  const sl=buildSlide(slides[cur],true);
+  sl.tabIndex=-1;
+  // κλικ σε κενό σημείο: θυμάται τη θέση για την επόμενη εικόνα (επικόλληση ή εισαγωγή)
+  sl.addEventListener('mousedown',e=>{
+    if(e.target===sl){
+      const r=sl.getBoundingClientRect();
+      clickPos={x:(e.clientX-r.left)/scale,y:(e.clientY-r.top)/scale};
+      if(e.button===2)showPasteZone(e.clientX,e.clientY);
+    }else clickPos=null;
+  });
+  // δεξί κλικ σε κενό σημείο: δικό μας μενού με επικόλληση εικόνας
+  sl.addEventListener('contextmenu',e=>{
+    if(e.target!==sl)return;
+    e.preventDefault();
+    const r=sl.getBoundingClientRect();
+    clickPos={x:(e.clientX-r.left)/scale,y:(e.clientY-r.top)/scale};
+    showCtx(e.clientX,e.clientY);
+  });
+  wrap.appendChild(sl);
+  applyScale();
+}
+function applyScale(){
+  const r=work.getBoundingClientRect();
+  scale=Math.max(0.25,Math.min((r.width-40)/W,(r.height-40)/H));
+  wrap.style.width=(W*scale)+'px';wrap.style.height=(H*scale)+'px';
+  const s=wrap.firstChild;if(s)s.style.transform='scale('+scale+')';
+}
+function thumbFill(tv,s){tv.innerHTML='';tv.appendChild(buildSlide(s,false));}
+function renderThumbs(){
+  thumbs.innerHTML='';
+  slides.forEach((s,i)=>{
+    const t=document.createElement('div');t.className='thumb'+(i===cur?' cur':'');
+    const n=document.createElement('div');n.className='num';n.textContent=i+1;
+    const tv=document.createElement('div');tv.className='tv';thumbFill(tv,s);
+    t.appendChild(n);t.appendChild(tv);
+    t.addEventListener('click',()=>select(i));
+    thumbs.appendChild(t);
+  });
+  const c=thumbs.children[cur];if(c&&c.scrollIntoView)c.scrollIntoView({block:'nearest'});
+}
+function renderThumb(i){
+  const t=thumbs.children[i];if(!t)return;
+  thumbFill(t.querySelector('.tv'),slides[i]);
+}
+function markCur(){
+  [...thumbs.children].forEach((t,i)=>t.classList.toggle('cur',i===cur));
+  const c=thumbs.children[cur];if(c&&c.scrollIntoView)c.scrollIntoView({block:'nearest'});
+}
+function syncControls(){
+  $('stTxt').textContent='Διαφάνεια '+(cur+1)+' από '+slides.length;
+}
+function renderAll(){renderThumbs();renderStage();syncControls();}
+function select(i){
+  if(i===cur)return;
+  cur=i;activeBox=null;savedRange=null;
+  renderStage();markCur();syncControls();
+}
+function markDirty(){
+  dirty=true;clearTimeout(thumbTimer);
+  thumbTimer=setTimeout(()=>renderThumb(cur),250);
+}
+function syncBox(t){
+  const b=t._b;if(!b)return;
+  b.html=t.innerHTML;b.st=readSt(t);markDirty();
+}
+
+/* ---------- αναίρεση ---------- */
+const imgIds=[], imgIdx=new Map();
+function packImg(k,v){
+  if(k==='src'&&typeof v==='string'&&v.startsWith('data:')){
+    let id=imgIdx.get(v);
+    if(id===undefined){id=imgIds.length;imgIds.push(v);imgIdx.set(v,id);}
+    return '@img'+id;
+  }
+  return v;
+}
+function unpackImg(k,v){return(k==='src'&&typeof v==='string'&&v.startsWith('@img'))?imgIds[+v.slice(4)]:v;}
+function snap(key){
+  const now=Date.now();
+  if(key!=null&&key===lastKey&&now-lastT<1000&&now-burstT<4000){lastT=now;return;}
+  undoStack.push(JSON.stringify({s:slides,c:cur},packImg));
+  if(undoStack.length>100)undoStack.shift();
+  lastKey=key==null?null:key;lastT=now;burstT=now;
+  updateUndoBtn();
+}
+function undo(){
+  if(!undoStack.length){toast('Δεν υπάρχει κάτι να αναιρέσω');return;}
+  const d=JSON.parse(undoStack.pop(),unpackImg);
+  slides=d.s;cur=Math.min(d.c,slides.length-1);
+  activeBox=null;savedRange=null;lastKey=null;dirty=true;
+  clearTimeout(thumbTimer);
+  renderAll();updateUndoBtn();
+}
+function updateUndoBtn(){$('btnUndo').classList.toggle('dis',!undoStack.length);}
+function setBg(v){
+  snap('bg'+cur);
+  slides[cur].bg=v;
+  if(wrap.firstChild)wrap.firstChild.style.background=v;
+  markDirty();
+}
+
+/* ---------- μετακίνηση πλαισίων ---------- */
+function startDrag(e,g,w,b){
+  e.preventDefault();
+  const sx=e.clientX,sy=e.clientY,ox=b.x,oy=b.y;
+  let moved=false;
+  g.setPointerCapture(e.pointerId);
+  const mv=ev=>{
+    if(!moved){snap();moved=true;}
+    b.x=Math.round(Math.max(0,Math.min(W-60,ox+(ev.clientX-sx)/scale)));
+    b.y=Math.round(Math.max(28,Math.min(H-40,oy+(ev.clientY-sy)/scale)));
+    w.style.left=b.x+'px';w.style.top=b.y+'px';
+  };
+  const up=()=>{g.removeEventListener('pointermove',mv);g.removeEventListener('pointerup',up);markDirty();};
+  g.addEventListener('pointermove',mv);g.addEventListener('pointerup',up);
+}
+
+/* ---------- διαφάνειες ---------- */
+function addSlide(layout){
+  snap();
+  slides.splice(cur+1,0,makeSlide(layout));
+  cur++;activeBox=null;savedRange=null;dirty=true;
+  renderAll();
+}
+function delSlide(){
+  if(!confirm('Να διαγραφεί η τρέχουσα διαφάνεια;'))return;
+  snap();
+  slides.splice(cur,1);
+  if(!slides.length)slides.push(makeSlide('title'));
+  cur=Math.min(cur,slides.length-1);
+  activeBox=null;savedRange=null;dirty=true;
+  renderAll();
+}
+
+/* ---------- μορφοποίηση ---------- */
+function toHex(c){
+  const m=c.match(/\d+/g);if(!m)return '#222222';
+  return '#'+m.slice(0,3).map(n=>(+n).toString(16).padStart(2,'0')).join('');
+}
+function refreshToolbar(){
+  if(!activeBox)return;
+  const sel=getSelection();
+  let el=activeBox;
+  if(sel.rangeCount&&activeBox.contains(sel.anchorNode)){
+    el=sel.anchorNode.nodeType===3?sel.anchorNode.parentElement:sel.anchorNode;
+  }
+  const cs=getComputedStyle(el);
+  selSize.value=String(Math.round(parseFloat(cs.fontSize)));
+  bB.classList.toggle('on',parseInt(cs.fontWeight,10)>=600);
+  bI.classList.toggle('on',cs.fontStyle==='italic');
+  let u=false;
+  for(let n=el;n&&n!==activeBox.parentNode;n=n.parentElement){
+    if(getComputedStyle(n).textDecorationLine.indexOf('underline')>=0){u=true;break;}
+  }
+  bU.classList.toggle('on',u);
+}
+function fixSizes(box,px){
+  box.querySelectorAll('font[size="7"]').forEach(f=>{
+    const s=document.createElement('span');s.style.fontSize=px+'px';
+    while(f.firstChild)s.appendChild(f.firstChild);
+    f.replaceWith(s);
+  });
+  box.querySelectorAll('span').forEach(s=>{
+    if(s.style.fontSize==='xxx-large'){
+      s.style.fontSize=px+'px';
+      s.querySelectorAll('*').forEach(c=>{c.style.fontSize='';});
+    }
+  });
+}
+function boxLevel(box,kind,val){
+  const p=PROP[kind];let v=val;
+  if(kind==='size')v=val+'px';
+  if(kind==='bold')v=box.style.fontWeight==='bold'?'normal':'bold';
+  if(kind==='italic')v=box.style.fontStyle==='italic'?'normal':'italic';
+  if(kind==='underline')v=box.style.textDecoration.indexOf('underline')>=0?'none':'underline';
+  box.style[p]=v;
+  box.querySelectorAll('*').forEach(e=>{
+    e.style[p]='';
+    if(kind==='font')e.removeAttribute('face');
+    if(kind==='color')e.removeAttribute('color');
+  });
+  const tag={bold:'b,strong',italic:'i,em',underline:'u'}[kind];
+  if(tag)box.querySelectorAll(tag).forEach(e=>e.replaceWith(...e.childNodes));
+}
+function applyFmt(kind,val){
+  if(!activeBox||!activeBox.isConnected){toast('Πρώτα κάνε κλικ μέσα σε ένα πλαίσιο κειμένου ✏️');return;}
+  const box=activeBox;
+  snap(kind==='color'?'fmtcolor':null);
+  inFmt=true;
+  const hasSel=savedRange&&!savedRange.collapsed&&box.contains(savedRange.commonAncestorContainer);
+  if(hasSel){
+    box.focus();
+    const sel=getSelection();sel.removeAllRanges();sel.addRange(savedRange);
+    document.execCommand('styleWithCSS',false,true);
+    if(kind==='font')document.execCommand('fontName',false,val);
+    else if(kind==='size'){document.execCommand('fontSize',false,'7');fixSizes(box,val);}
+    else if(kind==='color')document.execCommand('foreColor',false,val);
+    else if(kind==='bold')document.execCommand('bold');
+    else if(kind==='italic')document.execCommand('italic');
+    else if(kind==='underline')document.execCommand('underline');
+  }else{
+    boxLevel(box,kind,val);
+  }
+  inFmt=false;
+  syncBox(box);
+  refreshToolbar();
+}
+
+/* ---------- άνοιγμα / αποθήκευση ---------- */
+function save(){
+  let name=prompt('Με ποιο όνομα να αποθηκευτεί η παρουσίασή σου;','η-παρουσίασή-μου');
+  if(name===null)return;
+  name=name.trim().replace(/[\\\/:*?"<>|]+/g,'-')||'παρουσίαση';
+  const data=JSON.stringify({app:'presentation-kids',version:1,slides},null,1);
+  const blob=new Blob([data],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download=name+'.json';
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+  dirty=false;toast('Η παρουσίαση αποθηκεύτηκε ✔');
+}
+function openFile(f){
+  if(!f)return;
+  if(dirty&&!confirm('Η τρέχουσα παρουσίαση έχει αλλαγές που δεν αποθηκεύτηκαν. Να ανοίξω το αρχείο παρ’ όλα αυτά;')){return;}
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const d=JSON.parse(r.result);
+      const ns=normalize(d.slides);
+      snap();
+      slides=ns;cur=0;activeBox=null;savedRange=null;dirty=false;
+      renderAll();toast('Η παρουσίαση άνοιξε ✔');
+    }catch(e){alert('Αυτό το αρχείο δεν είναι παρουσίαση που μπορώ να ανοίξω.');}
+  };
+  r.readAsText(f);
+}
+
+/* ---------- παρουσίαση ---------- */
+function play(){
+  let i=cur;
+  const ov=document.createElement('div');ov.className='play';
+  const hold=document.createElement('div');hold.className='hold';
+  const cnt=document.createElement('div');cnt.className='cnt';
+  const x=document.createElement('button');x.className='x';x.textContent='✕';x.title='Έξοδος (Esc)';
+  ov.appendChild(hold);ov.appendChild(cnt);ov.appendChild(x);
+  document.body.appendChild(ov);
+  function show(){
+    const sc=Math.min(innerWidth/W,innerHeight/H);
+    hold.style.width=(W*sc)+'px';hold.style.height=(H*sc)+'px';
+    hold.innerHTML='';
+    const s=buildSlide(slides[i],false);s.style.transform='scale('+sc+')';
+    hold.appendChild(s);
+    cnt.textContent=(i+1)+' / '+slides.length;
+  }
+  function next(){if(i<slides.length-1){i++;show();}else exit();}
+  function prev(){if(i>0){i--;show();}}
+  function exit(){
+    window.removeEventListener('keydown',key,true);
+    window.removeEventListener('resize',show);
+    document.removeEventListener('fullscreenchange',fs);
+    ov.remove();
+    if(document.fullscreenElement&&document.exitFullscreen)document.exitFullscreen();
+  }
+  function fs(){if(!document.fullscreenElement)exit();}
+  function key(e){
+    if(e.key==='Escape'){e.preventDefault();exit();}
+    else if(['ArrowRight','ArrowDown','PageDown',' ','Enter'].includes(e.key)){e.preventDefault();next();}
+    else if(['ArrowLeft','ArrowUp','PageUp','Backspace'].includes(e.key)){e.preventDefault();prev();}
+  }
+  ov.addEventListener('click',e=>{if(e.target===x)exit();else next();});
+  window.addEventListener('keydown',key,true);
+  window.addEventListener('resize',show);
+  document.addEventListener('fullscreenchange',fs);
+  show();
+  if(ov.requestFullscreen){ov.requestFullscreen().catch(()=>{});}
+}
+
+/* ---------- μικρά βοηθητικά ---------- */
+let toastT=null;
+function toast(m){
+  const t=$('toast');t.textContent=m;t.classList.add('show');
+  clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2300);
+}
+
+/* ---------- σύνδεση ---------- */
+SIZES.forEach(s=>{const o=document.createElement('option');o.value=String(s);o.textContent=s;selSize.appendChild(o);});
+const menu=$('newMenu');
+LAY.forEach(([k,t])=>{
+  const b=document.createElement('button');b.className='mi';
+  b.innerHTML=ICONS[k]+'<span>'+t+'</span>';
+  b.addEventListener('click',()=>{menu.classList.remove('open');addSlide(k);});
+  menu.appendChild(b);
+});
+function closeMenus(except){document.querySelectorAll('.menu.open').forEach(m=>{if(m!==except)m.classList.remove('open');});}
+function bindMenu(btn,m){btn.addEventListener('click',()=>{closeMenus(m);m.classList.toggle('open');});}
+bindMenu($('btnNew'),menu);
+document.addEventListener('click',e=>{if(!e.target.closest('.dd'))closeMenus();});
+function buildPalette(btn,pal,colors,onPick){
+  const g=document.createElement('div');g.className='pgrid';
+  colors.forEach(c=>{
+    const s=document.createElement('button');s.className='psw';s.style.background=c;s.title=c;
+    s.addEventListener('mousedown',e=>e.preventDefault());
+    s.addEventListener('click',()=>{pal.classList.remove('open');onPick(c);});
+    g.appendChild(s);
+  });
+  pal.appendChild(g);
+  bindMenu(btn,pal);
+}
+buildPalette($('btnFc'),$('fcPal'),TEXT_COLORS,v=>applyFmt('color',v));
+buildPalette($('btnBg'),$('bgPal'),BG_COLORS,setBg);
+$('btnUndo').addEventListener('click',undo);
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.code==='KeyZ'&&!e.shiftKey&&!document.querySelector('.play')){e.preventDefault();undo();}
+});
+$('btnDel').addEventListener('click',delSlide);
+$('btnSave').addEventListener('click',save);
+$('btnOpen').addEventListener('click',()=>$('fileIn').click());
+$('fileIn').addEventListener('change',e=>{openFile(e.target.files[0]);e.target.value='';});
+$('btnPlay').addEventListener('click',play);
+$('btnImg').addEventListener('click',()=>$('imgIn').click());
+$('imgIn').addEventListener('change',e=>{insertImage(e.target.files[0]);e.target.value='';});
+// σύρσιμο αρχείου εικόνας πάνω στη διαφάνεια
+work.addEventListener('dragover',e=>e.preventDefault());
+work.addEventListener('drop',e=>{
+  e.preventDefault();
+  const f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];
+  if(f&&/^image\//.test(f.type)){
+    // αν το αρχείο αφεθεί σε κενό σημείο της διαφάνειας, η εικόνα μπαίνει εκεί
+    clickPos=null;
+    const sl=wrap.firstChild;
+    if(sl){
+      const r=sl.getBoundingClientRect();
+      if(e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom){
+        const p={x:(e.clientX-r.left)/scale,y:(e.clientY-r.top)/scale};
+        const over=slides[cur].boxes.some(b=>p.x>=b.x&&p.x<=b.x+b.w&&p.y>=b.y&&p.y<=b.y+b.h);
+        if(!over)clickPos=p;
+      }
+    }
+    insertImage(f);
+  }
+});
+window.addEventListener('dragover',e=>e.preventDefault());
+window.addEventListener('drop',e=>e.preventDefault());
+// μενού ποντικιού (δεξί κλικ) στον κενό χώρο της διαφάνειας
+const ctx=$('ctx');
+function showCtx(x,y){
+  ctx.innerHTML='';
+  [['📋','Επικόλληση εικόνας',pasteFromClipboard],
+   ['🖼️','Εισαγωγή εικόνας από αρχείο…',()=>$('imgIn').click()]].forEach(([ic,t,fn])=>{
+    const b=document.createElement('button');b.className='mi';
+    b.innerHTML='<span style="font-size:20px">'+ic+'</span><span>'+t+'</span>';
+    b.addEventListener('click',()=>{hideCtx();fn();});
+    ctx.appendChild(b);
+  });
+  ctx.classList.add('open');
+  ctx.style.left=Math.max(4,Math.min(x,innerWidth-ctx.offsetWidth-8))+'px';
+  ctx.style.top=Math.max(4,Math.min(y,innerHeight-ctx.offsetHeight-8))+'px';
+}
+/* δεξί κλικ σε κενό σημείο: μικρό αόρατο πεδίο, ώστε να εμφανιστεί το κανονικό μενού του browser με «Επικόλληση» */
+let pz=null;
+function removeZone(){if(pz){pz.remove();pz=null;}}
+function showPasteZone(x,y){
+  removeZone();
+  pz=document.createElement('div');pz.className='pz';pz.contentEditable='true';pz.spellcheck=false;
+  pz.style.left=Math.max(0,x-70)+'px';pz.style.top=Math.max(0,y-24)+'px';
+  pz.addEventListener('beforeinput',e=>e.preventDefault());
+  pz.addEventListener('keydown',e=>{if(!(e.ctrlKey||e.metaKey))e.preventDefault();if(e.key==='Escape')removeZone();});
+  pz.addEventListener('paste',e=>{
+    e.preventDefault();
+    if(!handleImagePaste(e))toast('Στο πρόχειρο δεν υπάρχει εικόνα. Αντίγραψε πρώτα μια εικόνα 📋');
+    removeZone();
+  });
+  pz.addEventListener('contextmenu',()=>pz&&pz.focus());
+  pz.addEventListener('mousedown',e=>{if(e.button===0)removeZone();});
+  pz.addEventListener('mouseleave',()=>{setTimeout(removeZone,250);});
+  document.body.appendChild(pz);
+  pz.focus();
+  setTimeout(()=>{if(pz)pz.focus();},0);
+}
+function hideCtx(){ctx.classList.remove('open');}
+document.addEventListener('mousedown',e=>{if(!e.target.closest('#ctx'))hideCtx();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')hideCtx();});
+window.addEventListener('blur',hideCtx);
+window.addEventListener('resize',hideCtx);
+async function pasteFromClipboard(){
+  if(!navigator.clipboard||!navigator.clipboard.read){
+    alert('Αυτός ο browser δεν επιτρέπει επικόλληση από αυτό το μενού.\nΠάτα Ctrl+V (ή Cmd+V στο Mac) αφού αντιγράψεις μια εικόνα.');
+    return;
+  }
+  let items;
+  try{items=await navigator.clipboard.read();}
+  catch(e){
+    alert('Ο browser δεν επέτρεψε την επικόλληση. Αν εμφανιστεί ερώτηση για το πρόχειρο, διάλεξε «Να επιτρέπεται».\nΜπορείς πάντα να πατήσεις Ctrl+V (ή Cmd+V στο Mac).');
+    return;
+  }
+  for(const it of items){
+    const type=it.types.find(t=>/^image\//.test(t));
+    if(type){insertImage(await it.getType(type));return;}
+  }
+  for(const it of items){
+    if(it.types.includes('text/html')){
+      const html=await (await it.getType('text/html')).text();
+      const m=html.match(/<img[^>]+src=["']([^"']+)["']/i);
+      if(m){
+        const src=m[1].replace(/&amp;/g,'&');
+        let txt='';
+        if(it.types.includes('text/plain'))txt=(await (await it.getType('text/plain')).text()).trim();
+        if(txt===''||txt===src){insertImageUrl(src);return;}
+      }
+    }
+  }
+  toast('Στο πρόχειρο δεν υπάρχει εικόνα. Αντίγραψε πρώτα μια εικόνα 📋');
+}
+// επικόλληση εικόνας (Ctrl+V) όταν η εστίαση δεν είναι σε πλαίσιο κειμένου
+document.addEventListener('paste',e=>{
+  if(e.defaultPrevented||document.querySelector('.play'))return;
+  handleImagePaste(e);
+});
+// τα κουμπιά δεν παίρνουν την εστίαση, ώστε να μένει η επιλογή κειμένου
+document.querySelectorAll('button.tool').forEach(b=>b.addEventListener('mousedown',e=>e.preventDefault()));
+bB.addEventListener('click',()=>applyFmt('bold'));
+bI.addEventListener('click',()=>applyFmt('italic'));
+bU.addEventListener('click',()=>applyFmt('underline'));
+selSize.addEventListener('change',()=>applyFmt('size',+selSize.value));
+document.addEventListener('selectionchange',()=>{
+  const s=getSelection();if(!s.rangeCount||!s.anchorNode)return;
+  const n=s.anchorNode.nodeType===3?s.anchorNode.parentElement:s.anchorNode;
+  const t=n&&n.closest?n.closest('.slide.edit .txt'):null;
+  if(t&&wrap.contains(t)){activeBox=t;savedRange=s.getRangeAt(0).cloneRange();refreshToolbar();}
+});
+window.addEventListener('resize',applyScale);
+window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue='';}});
+
+/* ---------- πλήρης οθόνη (όλη η εφαρμογή) ---------- */
+const fsBtn=$('fsBtn'), rootEl=document.documentElement;
+const fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+fsBtn.addEventListener('click',()=>{
+  try{
+    if(fsEl()){(document.exitFullscreen||document.webkitExitFullscreen).call(document);}
+    else{(rootEl.requestFullscreen||rootEl.webkitRequestFullscreen).call(rootEl);}
+  }catch(e){}
+});
+function fsUpd(){
+  const on=!!fsEl();
+  rootEl.classList.toggle('is-fs',on);
+  fsBtn.setAttribute('aria-label',on?'Έξοδος από πλήρη οθόνη':'Πλήρης οθόνη');
+  fsBtn.title=on?'Έξοδος από πλήρη οθόνη':'Πλήρης οθόνη';
+  applyScale();
+}
+document.addEventListener('fullscreenchange',fsUpd);
+document.addEventListener('webkitfullscreenchange',fsUpd);
+
+slides=[makeSlide('title')];
+renderAll();
+updateUndoBtn();
+})();
+</script>
+</body>
+</html>

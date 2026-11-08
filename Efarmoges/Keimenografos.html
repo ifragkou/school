@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ο Κειμενογράφος μου</title>
+<style>
+  :root { --line: 48px; --ink: #1b2a41; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: #e8f1fb;
+    color: #222;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+  }
+
+  /* ---------- Επάνω μπάρα ---------- */
+  .top {
+    background: #2f7bd0;
+    color: #fff;
+    font-size: 22px;
+    font-weight: bold;
+    padding: 8px 16px;
+    letter-spacing: .5px;
+  }
+
+  /* ---------- Εργαλειοθήκη ---------- */
+  .toolbar {
+    position: relative;
+    z-index: 10;
+    background: #fff;
+    border-bottom: 3px solid #4a90d9;
+    padding: 8px 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    align-items: flex-end;
+  }
+  .group {
+    display: flex;
+    gap: 5px;
+    align-items: flex-end;
+    padding-right: 12px;
+    border-right: 2px dashed #cfe0f3;
+  }
+  .group:last-child { border-right: none; padding-right: 0; }
+
+  .tb {
+    min-width: 58px;
+    height: 62px;
+    border: 2px solid #b9d3ee;
+    background: #f4f9ff;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: inherit;
+    font-size: 12px;
+    color: var(--ink);
+    gap: 2px;
+    padding: 2px 6px;
+  }
+  .tb:hover { background: #dff0ff; }
+  .tb:active { transform: translateY(1px); }
+  .tb.on { background: #ffe08a; border-color: #e0a800; }
+  .tb:disabled { opacity: .4; cursor: default; background: #f4f9ff; }
+  .ic {
+    font-size: 22px;
+    line-height: 1.1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .bar {
+    display: block;
+    width: 24px;
+    height: 4px;
+    border-radius: 2px;
+    margin-top: 1px;
+    background: #000;
+    border: 1px solid #99a;
+  }
+  .ctl {
+    display: flex;
+    flex-direction: column;
+    font-size: 12px;
+    gap: 3px;
+    color: var(--ink);
+  }
+  select {
+    height: 36px;
+    font-size: 16px;
+    border: 2px solid #b9d3ee;
+    border-radius: 8px;
+    background: #fff;
+    padding: 0 6px;
+    color: var(--ink);
+  }
+
+  /* ---------- Αναδυόμενα παράθυρα ---------- */
+  .dd { position: relative; }
+  .pop {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 6px;
+    background: #fff;
+    border: 3px solid #4a90d9;
+    border-radius: 12px;
+    padding: 10px;
+    box-shadow: 0 6px 18px rgba(0,0,0,.28);
+    z-index: 30;
+  }
+  .pop.open { display: block; }
+  .pop-title { font-size: 13px; color: var(--ink); margin-bottom: 8px; font-weight: bold; }
+  .swatches { display: grid; grid-template-columns: repeat(6, 36px); gap: 8px; }
+  .sw {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    outline: 1px solid #889;
+    cursor: pointer;
+    padding: 0;
+  }
+  .sw:hover { transform: scale(1.12); outline: 2px solid #2f7bd0; }
+  .nofill {
+    margin-top: 10px;
+    width: 100%;
+    height: 34px;
+    border: 2px solid #b9d3ee;
+    background: #f4f9ff;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--ink);
+  }
+  .nofill:hover { background: #dff0ff; }
+
+  .tgrid {
+    display: grid;
+    grid-template-columns: repeat(10, 26px);
+    gap: 3px;
+  }
+  .tcell {
+    width: 26px; height: 26px;
+    border: 2px solid #9bbbe0;
+    background: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .tcell.hot { background: #8fc1f5; border-color: #2f7bd0; }
+  #tpLabel {
+    margin-top: 8px;
+    text-align: center;
+    font-size: 15px;
+    font-weight: bold;
+    color: var(--ink);
+    min-height: 22px;
+  }
+
+  /* ---------- Χαρτί τετραδίου ---------- */
+  .desk { flex: 1; overflow: auto; padding: 18px 12px 60px; }
+  .sheet {
+    position: relative;
+    max-width: 920px;
+    margin: 0 auto;
+    background: #fffef9;
+    border-radius: 6px;
+    box-shadow: 0 3px 14px rgba(40, 70, 110, .25);
+  }
+  .sheet.empty::after {
+    content: "Γράψε εδώ το κείμενό σου…";
+    position: absolute;
+    left: 80px;
+    top: calc(var(--line) * 2);
+    line-height: var(--line);
+    font-size: 24px;
+    color: #b3bccb;
+    pointer-events: none;
+    font-family: "Comic Sans MS", "Comic Neue", "Chalkboard SE", sans-serif;
+  }
+  .editor {
+    min-height: calc(var(--line) * 16);
+    outline: none;
+    padding: 0 28px 0 80px;
+    font-family: "Comic Sans MS", "Comic Neue", "Chalkboard SE", sans-serif;
+    font-size: 24px;
+    line-height: var(--line);
+    color: var(--ink);
+    background-color: #fffef9;
+    border-radius: 6px;
+    background-image:
+      linear-gradient(to right, transparent 62px, #f1a1a1 62px, #f1a1a1 65px, transparent 65px),
+      linear-gradient(to bottom, transparent 39px, #9cc3ea 39px, #9cc3ea 41px, transparent 41px);
+    background-size: 100% 100%, 100% var(--line);
+    background-repeat: no-repeat, repeat;
+    background-attachment: local, local;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+  }
+  .editor div { min-height: var(--line); }
+  .editor ul, .editor ol { margin: 0; padding-left: 40px; }
+  .editor li { min-height: var(--line); }
+
+  /* ---------- Αντικείμενα που κινούνται πάνω στη σελίδα ---------- */
+  .layer {
+    position: absolute;
+    left: 0; top: 0;
+    width: 100%;
+    height: 0;
+    pointer-events: none;
+    z-index: 3;
+    font-family: "Comic Sans MS", "Comic Neue", "Chalkboard SE", sans-serif;
+    font-size: 24px;
+    line-height: 1.35;
+    color: var(--ink);
+  }
+  .obj {
+    position: absolute;
+    pointer-events: auto;
+    outline: none;
+  }
+  .obj[data-kind="table"] { width: max-content; }
+  .obj[data-kind="img"] { touch-action: none; cursor: move; user-select: none; -webkit-user-select: none; }
+  .obj img { display: block; width: 100%; height: auto; -webkit-user-drag: none; user-select: none; }
+  .obj table {
+    border-collapse: separate;
+    border-spacing: 0;
+    table-layout: fixed;
+  }
+  .obj tr { height: 44px; }
+  .obj td {
+    padding: 4px 8px;
+    vertical-align: middle;
+    box-shadow: inset 0 0 0 1px #2c3e5a;
+    background: #fff;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  /* ---------- Λαβές επεξεργασίας ---------- */
+  .overlay {
+    position: absolute;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 6;
+  }
+  .overlay > * { position: absolute; }
+  .frame {
+    border: 2px dashed #2f7bd0;
+    border-radius: 4px;
+    pointer-events: none;
+  }
+  .obar { display: flex; gap: 6px; pointer-events: none; }
+  .obar button {
+    pointer-events: auto;
+    height: 30px;
+    border-radius: 15px;
+    border: 2px solid #2f7bd0;
+    background: #fff;
+    color: #1b4f8f;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0 12px;
+    touch-action: none;
+    box-shadow: 0 2px 6px rgba(0,0,0,.2);
+  }
+  .obar button.mv { cursor: move; }
+  .obar button:hover { background: #dff0ff; }
+  .grip { pointer-events: auto; touch-action: none; }
+  .grip::after {
+    content: "";
+    position: absolute;
+    background: rgba(47, 123, 208, .35);
+    border-radius: 2px;
+  }
+  .grip:hover::after { background: #2f7bd0; }
+  .cg { cursor: col-resize; }
+  .cg::after { left: 5px; top: 0; bottom: 0; width: 4px; }
+  .rg { cursor: row-resize; }
+  .rg::after { top: 5px; left: 0; right: 0; height: 4px; }
+  .rs {
+    pointer-events: auto;
+    touch-action: none;
+    cursor: nwse-resize;
+    background: #2f7bd0;
+    border: 3px solid #fff;
+    border-radius: 6px;
+    box-shadow: 0 1px 5px rgba(0,0,0,.4);
+  }
+
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 22px;
+    transform: translateX(-50%);
+    background: #1b4f8f;
+    color: #fff;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 10px 22px;
+    border-radius: 24px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.3);
+    z-index: 50;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s;
+  }
+  .toast.show { opacity: 1; }
+
+  @media print {
+    .toast { display: none !important; }
+    .top, .toolbar, .overlay { display: none !important; }
+    body { display: block; height: auto; background: #fff; }
+    .desk { overflow: visible; padding: 0; }
+    .sheet { box-shadow: none; max-width: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="top">✏️ Ο Κειμενογράφος μου</div>
+
+<div class="toolbar" id="toolbar">
+
+  <div class="group">
+    <button class="tb" data-act="undo" title="Αναίρεση"><span class="ic">↶</span>Αναίρεση</button>
+    <button class="tb" data-act="redo" title="Επανάληψη"><span class="ic">↷</span>Επανάληψη</button>
+  </div>
+
+  <div class="group">
+    <label class="ctl">Γραμματοσειρά
+      <select id="fontSel"></select>
+    </label>
+    <label class="ctl">Μέγεθος γραμμάτων
+      <select id="sizeSel"></select>
+    </label>
+  </div>
+
+  <div class="group">
+    <button class="tb" data-act="bold" id="bBold" title="Έντονα γράμματα"><span class="ic"><b>B</b></span>Έντονα</button>
+    <button class="tb" data-act="italic" id="bItalic" title="Πλάγια γράμματα"><span class="ic"><i>I</i></span>Πλάγια</button>
+    <button class="tb" data-act="underline" id="bUnder" title="Υπογραμμισμένα γράμματα"><span class="ic"><u>U</u></span>Υπογράμμιση</button>
+  </div>
+
+  <div class="group">
+    <div class="dd">
+      <button class="tb" id="btnColor" title="Χρώμα γραμμάτων"><span class="ic"><b>A</b><i class="bar" id="colorBar"></i></span>Χρώμα γραμμάτων</button>
+      <div class="pop" id="popColor">
+        <div class="pop-title">Διάλεξε χρώμα γραμμάτων</div>
+        <div class="swatches" id="swColor"></div>
+      </div>
+    </div>
+    <div class="dd">
+      <button class="tb" id="btnFill" title="Γέμισμα με χρώμα: σημάδεψε γράμματα ή κάνε κλικ μέσα σε ένα κουτάκι πίνακα"><span class="ic">🖍️<i class="bar" id="fillBar" style="background:#fff176"></i></span>Γέμισμα</button>
+      <div class="pop" id="popFill">
+        <div class="pop-title">Γέμισμα με χρώμα</div>
+        <div class="swatches" id="swFill"></div>
+        <button class="nofill" id="noFill">Χωρίς χρώμα</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="group">
+    <button class="tb" data-act="insertUnorderedList" id="bUL" title="Κουκκίδες"><span class="ic">•≡</span>Κουκκίδες</button>
+    <button class="tb" data-act="insertOrderedList" id="bOL" title="Αρίθμηση"><span class="ic">1.</span>Αρίθμηση</button>
+  </div>
+
+  <div class="group">
+    <div class="dd">
+      <button class="tb" id="btnTable" title="Δημιουργία πίνακα"><span class="ic">▦</span>Πίνακας</button>
+      <div class="pop" id="popTable">
+        <div class="pop-title">Διάλεξε γραμμές και στήλες</div>
+        <div class="tgrid" id="tgrid"></div>
+        <div id="tpLabel">Πέρασε το ποντίκι πάνω από τα κουτάκια</div>
+      </div>
+    </div>
+    <button class="tb" id="btnImg" title="Βάλε μια εικόνα από ένα αρχείο του υπολογιστή"><span class="ic">🖼️</span>Εικόνα</button>
+    <button class="tb" id="btnDelTable" title="Σβήσε τον πίνακα ή την εικόνα που έχεις επιλέξει" disabled><span class="ic">🗑️</span>Σβήσε</button>
+  </div>
+
+  <div class="group">
+    <button class="tb" id="btnNew" title="Νέο κενό χαρτί"><span class="ic">📄</span>Νέο</button>
+    <button class="tb" id="btnOpen" title="Άνοιξε ένα αρχείο που έχεις αποθηκεύσει"><span class="ic">📂</span>Άνοιγμα</button>
+    <button class="tb" id="btnSave" title="Αποθήκευσε το κείμενο σε αρχείο"><span class="ic">💾</span>Αποθήκευση</button>
+    <button class="tb" id="btnPrint" title="Εκτύπωση"><span class="ic">🖨️</span>Εκτύπωση</button>
+  </div>
+
+</div>
+
+<input type="file" id="fileIn" accept="image/*" hidden>
+<input type="file" id="docIn" accept=".kim,.txt,.json,text/plain,application/json" hidden>
+<div class="toast" id="toast" role="status"></div>
+
+<div class="desk">
+  <div class="sheet empty" id="sheet">
+    <div class="editor" id="editor" contenteditable="true" spellcheck="false" lang="el"><div><br></div><div><br></div><div><br></div></div>
+    <div class="layer" id="layer"></div>
+    <div class="overlay" id="overlay"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var $ = function (id) { return document.getElementById(id); };
+  var editor = $('editor'), sheet = $('sheet'), layer = $('layer'),
+      overlay = $('overlay'), toolbar = $('toolbar');
+  var STORE_KEY = 'kimenografos_paidi_v2';
+  var LINE = 48;
+
+  var FONTS = [
+    ['Comic Sans MS', 'sans-serif'],
+    ['Arial', 'sans-serif'],
+    ['Verdana', 'sans-serif'],
+    ['Tahoma', 'sans-serif'],
+    ['Trebuchet MS', 'sans-serif'],
+    ['Georgia', 'serif'],
+    ['Times New Roman', 'serif'],
+    ['Courier New', 'monospace']
+  ];
+  var SIZES = [16, 20, 24, 28, 32, 40];
+  var TEXT_COLORS = ['#000000', '#555555', '#e53935', '#fb8c00', '#fdd835', '#43a047',
+                     '#00acc1', '#1e88e5', '#3949ab', '#8e24aa', '#d81b60', '#6d4c41'];
+  var FILL_COLORS = ['#fff176', '#ffb74d', '#ef9a9a', '#f48fb1', '#ce93d8', '#90caf9',
+                     '#80deea', '#a5d6a7', '#e6ee9c', '#bcaaa4', '#e0e0e0', '#ffffff'];
+
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text) e.textContent = text;
+    return e;
+  }
+
+  var fontSel = $('fontSel'), sizeSel = $('sizeSel');
+  FONTS.forEach(function (f) {
+    var o = document.createElement('option');
+    o.value = f[0]; o.textContent = f[0];
+    o.style.fontFamily = '"' + f[0] + '", ' + f[1];
+    fontSel.appendChild(o);
+  });
+  SIZES.forEach(function (s) {
+    var o = document.createElement('option');
+    o.value = s; o.textContent = s;
+    sizeSel.appendChild(o);
+  });
+  fontSel.value = 'Comic Sans MS';
+  sizeSel.value = 24;
+
+  document.execCommand('defaultParagraphSeparator', false, 'div');
+
+  /* ---------- Επιλογή (selection) ---------- */
+  var savedRange = null;
+  var currentPx = 24;
+  var applyingSize = false;
+
+  function elOf(node) { return node && (node.nodeType === 1 ? node : node.parentElement); }
+  function tableObjOf(node) {
+    var e = elOf(node);
+    var o = e && e.closest ? e.closest('.obj') : null;
+    return (o && layer.contains(o) && o.dataset.kind === 'table') ? o : null;
+  }
+  /* Επιστρέφει το «χαρτί» που γράφουμε: το κυρίως κείμενο ή έναν πίνακα */
+  function hostOf(node) {
+    if (!node) return null;
+    if (editor.contains(node)) return editor;
+    return tableObjOf(node);
+  }
+  function closestCell(node) {
+    var e = elOf(node);
+    var td = e && e.closest ? e.closest('td') : null;
+    return td && layer.contains(td) ? td : null;
+  }
+
+  function restore() {
+    var host = savedRange ? hostOf(savedRange.startContainer) : null;
+    (host || editor).focus();
+    if (host && savedRange) {
+      var s = window.getSelection();
+      s.removeAllRanges();
+      s.addRange(savedRange);
+    }
+  }
+  function placeCaret(node) {
+    var r = document.createRange();
+    r.selectNodeContents(node);
+    r.collapse(true);
+    var s = window.getSelection();
+    s.removeAllRanges();
+    s.addRange(r);
+    savedRange = r.cloneRange();
+  }
+
+  document.addEventListener('selectionchange', function () {
+    var s = window.getSelection();
+    if (!s.rangeCount) return;
+    var host = hostOf(s.anchorNode);
+    if (!host) return;
+    savedRange = s.getRangeAt(0).cloneRange();
+    if (host !== editor) setActive(host);
+    else if (activeObj && activeObj.dataset.kind === 'table') setActive(null);
+    updateState();
+  });
+
+  /* ---------- Αποθήκευση / έλεγχοι ---------- */
+  var saveTimer = null;
+  /* Το περιεχόμενο δεν κρατιέται αυτόματα: κάθε φορά που ανοίγει η εφαρμογή ξεκινά κενό χαρτί.
+     Για να κρατήσεις κάτι, πάτα «Αποθήκευση». */
+  function save() {}
+  var BLANK_DOC = '<div><br></div><div><br></div><div><br></div>';
+  /* Βάζει τον κέρσορα στην τρίτη γραμμή */
+  function caretToStart() {
+    var n = editor.children[2] || editor.lastElementChild || editor.firstChild;
+    if (n) placeCaret(n);
+  }
+  function checkEmpty() {
+    var empty = editor.textContent.replace(/\u200b/g, '').trim() === '' &&
+                !editor.querySelector('li') && !layer.querySelector('.obj');
+    sheet.classList.toggle('empty', empty);
+  }
+  function ensureNotEmpty() {
+    if (!editor.firstChild || editor.innerHTML === '' || editor.innerHTML === '<br>') {
+      editor.innerHTML = BLANK_DOC;
+      if (document.activeElement === editor) caretToStart();
+    }
+  }
+  /* Το χαρτί μεγαλώνει ώστε να χωράει τα αντικείμενα */
+  function fitHeight() {
+    var maxB = 0;
+    layer.querySelectorAll(':scope > .obj').forEach(function (o) {
+      maxB = Math.max(maxB, (parseFloat(o.style.top) || 0) + o.offsetHeight);
+    });
+    var h = Math.max(LINE * 16, Math.ceil((maxB + LINE) / LINE) * LINE);
+    editor.style.minHeight = h + 'px';
+  }
+  function afterChange() {
+    ensureNotEmpty();
+    checkEmpty();
+    fitHeight();
+    layoutOverlay();
+    save();
+    updateState();
+  }
+
+  /* ---------- Εντολές ---------- */
+  function exec(cmd, val) {
+    restore();
+    document.execCommand('styleWithCSS', false, false);
+    document.execCommand(cmd, false, val);
+    afterChange();
+  }
+
+  toolbar.addEventListener('mousedown', function (e) {
+    if (!e.target.closest('select')) e.preventDefault();
+  });
+
+  toolbar.querySelectorAll('[data-act]').forEach(function (b) {
+    b.addEventListener('click', function () { exec(b.getAttribute('data-act')); });
+  });
+
+  /* Γραμματοσειρά */
+  fontSel.addEventListener('change', function () {
+    var name = fontSel.value;
+    var generic = 'sans-serif';
+    FONTS.forEach(function (f) { if (f[0] === name) generic = f[1]; });
+    exec('fontName', name + ', ' + generic);
+  });
+
+  /* Μέγεθος */
+  function fixFonts(reselect) {
+    var fonts = Array.prototype.slice.call(sheet.querySelectorAll('font[size="7"]'));
+    if (!fonts.length) return;
+    var spans = fonts.map(function (f) {
+      var sp = document.createElement('span');
+      sp.style.fontSize = currentPx + 'px';
+      while (f.firstChild) sp.appendChild(f.firstChild);
+      f.replaceWith(sp);
+      sp.querySelectorAll('[style*="font-size"]').forEach(function (e) { e.style.fontSize = ''; });
+      return sp;
+    });
+    var r = document.createRange();
+    if (reselect) {
+      r.setStartBefore(spans[0]);
+      r.setEndAfter(spans[spans.length - 1]);
+    } else {
+      r.selectNodeContents(spans[spans.length - 1]);
+      r.collapse(false);
+    }
+    var s = window.getSelection();
+    s.removeAllRanges();
+    s.addRange(r);
+    savedRange = r.cloneRange();
+  }
+  sizeSel.addEventListener('change', function () {
+    currentPx = parseInt(sizeSel.value, 10);
+    restore();
+    var s = window.getSelection();
+    var wasCollapsed = s.isCollapsed;
+    applyingSize = true;
+    document.execCommand('styleWithCSS', false, false);
+    document.execCommand('fontSize', false, '7');
+    applyingSize = false;
+    fixFonts(!wasCollapsed);
+    afterChange();
+  });
+
+  /* ---------- Παλέτες ---------- */
+  var pops = ['popColor', 'popFill', 'popTable'].map($);
+  function closePops() { pops.forEach(function (p) { p.classList.remove('open'); }); }
+  function togglePop(pop) {
+    var wasOpen = pop.classList.contains('open');
+    closePops();
+    if (!wasOpen) {
+      pop.style.left = '0px';
+      pop.classList.add('open');
+      var r = pop.getBoundingClientRect();
+      if (r.right > window.innerWidth - 8) {
+        pop.style.left = (window.innerWidth - 8 - r.right) + 'px';
+      }
+    }
+  }
+  document.addEventListener('mousedown', function (e) {
+    if (!e.target.closest('.dd')) closePops();
+  });
+
+  function makeSwatches(container, colors, onPick) {
+    colors.forEach(function (c) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'sw';
+      b.style.background = c;
+      b.title = c;
+      b.addEventListener('click', function () { onPick(c); closePops(); });
+      container.appendChild(b);
+    });
+  }
+
+  function setTextColor(c) {
+    restore();
+    document.execCommand('styleWithCSS', false, true);
+    document.execCommand('foreColor', false, c);
+    document.execCommand('styleWithCSS', false, false);
+    $('colorBar').style.background = c;
+    afterChange();
+  }
+  function setFill(c) {
+    restore();
+    var s = window.getSelection();
+    var cell = s.rangeCount ? closestCell(s.anchorNode) : null;
+    if (s.isCollapsed && cell) {
+      cell.style.backgroundColor = c || '#fff';
+    } else {
+      document.execCommand('styleWithCSS', false, true);
+      document.execCommand('hiliteColor', false, c || 'transparent');
+      document.execCommand('styleWithCSS', false, false);
+    }
+    if (c) $('fillBar').style.background = c;
+    afterChange();
+  }
+
+  makeSwatches($('swColor'), TEXT_COLORS, setTextColor);
+  makeSwatches($('swFill'), FILL_COLORS, setFill);
+  $('noFill').addEventListener('click', function () { setFill(null); closePops(); });
+  $('btnColor').addEventListener('click', function () { togglePop($('popColor')); });
+  $('btnFill').addEventListener('click', function () { togglePop($('popFill')); });
+
+  /* ---------- Τοποθέτηση αντικειμένων (πίνακες, εικόνες) ---------- */
+  function blank() { var d = document.createElement('div'); d.appendChild(document.createElement('br')); return d; }
+
+  function currentBlock() {
+    var n = savedRange ? savedRange.startContainer : null;
+    if (n && n !== editor && editor.contains(n)) {
+      while (n.parentNode !== editor) n = n.parentNode;
+      return n.nodeType === 1 ? n : null;
+    }
+    return editor.lastElementChild;
+  }
+
+  /* Βάζει το αντικείμενο στη γραμμή του κέρσορα και αφήνει κενές γραμμές από κάτω */
+  function placeObject(o) {
+    var blk = currentBlock();
+    if (!blk) { blk = blank(); editor.appendChild(blk); }
+    var isEmpty = blk.tagName === 'DIV' &&
+                  blk.textContent.replace(/\u200b/g, '').trim() === '' &&
+                  !blk.querySelector('ul, ol, table, img');
+    var topEl = blk, anchor = blk;
+    if (!isEmpty) {
+      topEl = blank();
+      blk.parentNode.insertBefore(topEl, blk.nextSibling);
+      anchor = topEl;
+    }
+    o.style.left = '80px';
+    o.style.top = topEl.offsetTop + 'px';
+    layer.appendChild(o);
+    var n = Math.max(1, Math.ceil(o.offsetHeight / LINE));
+    for (var i = 0; i < n; i++) {
+      anchor.parentNode.insertBefore(blank(), anchor.nextSibling);
+    }
+  }
+
+  /* ---------- Πίνακας ---------- */
+  var ROWS = 8, COLS = 10;
+  var tgrid = $('tgrid'), tpLabel = $('tpLabel');
+  var tcells = [];
+  for (var r = 1; r <= ROWS; r++) {
+    for (var c = 1; c <= COLS; c++) {
+      var d = document.createElement('div');
+      d.className = 'tcell';
+      d.dataset.r = r;
+      d.dataset.c = c;
+      tgrid.appendChild(d);
+      tcells.push(d);
+    }
+  }
+  function word(n, one, many) { return n + ' ' + (n === 1 ? one : many); }
+  function highlight(R, C) {
+    tcells.forEach(function (d) {
+      d.classList.toggle('hot', +d.dataset.r <= R && +d.dataset.c <= C);
+    });
+    tpLabel.textContent = R ? (word(R, 'γραμμή', 'γραμμές') + ' × ' + word(C, 'στήλη', 'στήλες')) : 'Πέρασε το ποντίκι πάνω από τα κουτάκια';
+  }
+  tgrid.addEventListener('pointerover', function (e) {
+    var d = e.target.closest('.tcell');
+    if (d) highlight(+d.dataset.r, +d.dataset.c);
+  });
+  tgrid.addEventListener('pointerleave', function () { highlight(0, 0); });
+  tgrid.addEventListener('click', function (e) {
+    var d = e.target.closest('.tcell');
+    if (!d) return;
+    addTable(+d.dataset.r, +d.dataset.c);
+    closePops();
+    highlight(0, 0);
+  });
+  $('btnTable').addEventListener('click', function () { togglePop($('popTable')); });
+
+  function addTable(R, C) {
+    restore();
+    var avail = Math.max(300, sheet.clientWidth - 80 - 30);
+    var colW = Math.max(60, Math.min(130, Math.floor(avail / C)));
+
+    var o = document.createElement('div');
+    o.className = 'obj';
+    o.dataset.kind = 'table';
+    o.setAttribute('contenteditable', 'true');
+
+    var t = document.createElement('table');
+    t.style.width = (colW * C) + 'px';
+    var cg = document.createElement('colgroup');
+    for (var i = 0; i < C; i++) {
+      var col = document.createElement('col');
+      col.style.width = colW + 'px';
+      cg.appendChild(col);
+    }
+    t.appendChild(cg);
+    var tb = document.createElement('tbody');
+    for (var j = 0; j < R; j++) {
+      var tr = document.createElement('tr');
+      for (var k = 0; k < C; k++) {
+        var td = document.createElement('td');
+        td.appendChild(document.createElement('br'));
+        tr.appendChild(td);
+      }
+      tb.appendChild(tr);
+    }
+    t.appendChild(tb);
+    o.appendChild(t);
+
+    placeObject(o);
+    o.focus();
+    placeCaret(t.querySelector('td'));
+    setActive(o);
+    afterChange();
+  }
+
+  /* ---------- Εικόνα από αρχείο ---------- */
+  $('btnImg').addEventListener('click', function () { $('fileIn').click(); });
+  $('fileIn').addEventListener('change', function () {
+    var input = this;
+    var f = input.files && input.files[0];
+    input.value = '';
+    if (!f) return;
+    if (!/^image\//.test(f.type)) { window.alert('Διάλεξε ένα αρχείο εικόνας.'); return; }
+    var url = URL.createObjectURL(f);
+    var img = new Image();
+    img.onload = function () {
+      var w = img.naturalWidth || 300, h = img.naturalHeight || 300;
+      var k = Math.min(1, 900 / Math.max(w, h));
+      var cw = Math.max(1, Math.round(w * k)), ch = Math.max(1, Math.round(h * k));
+      var cv = document.createElement('canvas');
+      cv.width = cw; cv.height = ch;
+      var cx = cv.getContext('2d');
+      var keepAlpha = /png|gif|webp|svg/.test(f.type);
+      if (!keepAlpha) { cx.fillStyle = '#fff'; cx.fillRect(0, 0, cw, ch); }
+      cx.drawImage(img, 0, 0, cw, ch);
+      var data = null;
+      try { data = keepAlpha ? cv.toDataURL('image/png') : cv.toDataURL('image/jpeg', 0.85); } catch (err) {}
+      URL.revokeObjectURL(url);
+      if (!data) { window.alert('Δεν μπόρεσα να βάλω αυτή την εικόνα.'); return; }
+      addImage(data, cw, ch);
+    };
+    img.onerror = function () {
+      URL.revokeObjectURL(url);
+      window.alert('Δεν μπόρεσα να ανοίξω αυτή την εικόνα.');
+    };
+    img.src = url;
+  });
+
+  function addImage(data, w, h) {
+    restore();
+    var o = document.createElement('div');
+    o.className = 'obj';
+    o.dataset.kind = 'img';
+    o.setAttribute('contenteditable', 'false');
+    o.style.width = Math.min(w, 360) + 'px';
+    var im = document.createElement('img');
+    im.alt = 'εικόνα';
+    im.draggable = false;
+    im.setAttribute('width', w);
+    im.setAttribute('height', h);
+    im.style.aspectRatio = w + ' / ' + h;
+    im.src = data;
+    o.appendChild(im);
+    placeObject(o);
+    setActive(o);
+    afterChange();
+  }
+
+  /* ---------- Επιλεγμένο αντικείμενο και λαβές ---------- */
+  var activeObj = null, ovState = null, ro = null;
+  if (window.ResizeObserver) ro = new ResizeObserver(function () { layoutOverlay(); });
+
+  function setActive(o) {
+    if (o === activeObj) { if (o) layoutOverlay(); return; }
+    activeObj = o;
+    if (ro) { ro.disconnect(); if (o) ro.observe(o); }
+    buildOverlay();
+    updateState();
+  }
+
+  function buildOverlay() {
+    overlay.innerHTML = '';
+    ovState = null;
+    if (!activeObj) return;
+    var st = { cgs: [], rgs: [], rs: null };
+    st.frame = el('div', 'frame');
+    st.bar = el('div', 'obar');
+    st.mv = el('button', 'mv', '✥ Μετακίνηση');
+    st.mv.type = 'button';
+    st.mv.title = 'Κράτα πατημένο και σύρε';
+    st.dl = el('button', 'dl', '🗑');
+    st.dl.type = 'button';
+    st.dl.title = 'Σβήσε';
+    st.bar.appendChild(st.mv);
+    st.bar.appendChild(st.dl);
+    overlay.appendChild(st.frame);
+    overlay.appendChild(st.bar);
+    if (activeObj.dataset.kind === 'table') {
+      var tb = activeObj.querySelector('table');
+      if (tb && tb.rows.length) {
+        var i, g;
+        for (i = 0; i < tb.rows[0].cells.length; i++) {
+          g = el('div', 'grip cg');
+          g.dataset.i = i;
+          g.title = 'Σύρε για να αλλάξεις το πλάτος της στήλης';
+          overlay.appendChild(g);
+          st.cgs.push(g);
+        }
+        for (i = 0; i < tb.rows.length; i++) {
+          g = el('div', 'grip rg');
+          g.dataset.i = i;
+          g.title = 'Σύρε για να αλλάξεις το ύψος της γραμμής';
+          overlay.appendChild(g);
+          st.rgs.push(g);
+        }
+      }
+    } else {
+      st.rs = el('div', 'rs');
+      st.rs.title = 'Σύρε για να αλλάξεις το μέγεθος';
+      overlay.appendChild(st.rs);
+    }
+    ovState = st;
+    layoutOverlay();
+  }
+
+  function place(e, l, t, w, h) {
+    e.style.left = l + 'px';
+    e.style.top = t + 'px';
+    e.style.width = w + 'px';
+    e.style.height = h + 'px';
+  }
+
+  function layoutOverlay() {
+    var st = ovState;
+    if (!st) return;
+    if (!activeObj || !layer.contains(activeObj)) { setActive(null); return; }
+    var sr = sheet.getBoundingClientRect();
+    var r = activeObj.getBoundingClientRect();
+    var x = r.left - sr.left, y = r.top - sr.top, w = r.width, h = r.height;
+    place(st.frame, x - 3, y - 3, w + 6, h + 6);
+    st.bar.style.left = x + 'px';
+    st.bar.style.top = (y >= 38 ? y - 36 : y + 6) + 'px';
+    if (activeObj.dataset.kind === 'table') {
+      var tb = activeObj.querySelector('table');
+      if (!tb || !tb.rows.length) return;
+      var cells = tb.rows[0].cells;
+      st.cgs.forEach(function (g, i) {
+        if (!cells[i]) return;
+        var cr = cells[i].getBoundingClientRect();
+        place(g, cr.right - sr.left - 7, y, 14, h);
+      });
+      st.rgs.forEach(function (g, j) {
+        if (!tb.rows[j]) return;
+        var rr = tb.rows[j].getBoundingClientRect();
+        place(g, x, rr.bottom - sr.top - 7, w, 14);
+      });
+    } else if (st.rs) {
+      place(st.rs, x + w - 12, y + h - 12, 22, 22);
+    }
+  }
+
+  window.addEventListener('resize', layoutOverlay);
+
+  function deleteActive() {
+    var o = activeObj;
+    if (!o) return;
+    var what = o.dataset.kind === 'table' ? 'πίνακα' : 'εικόνα';
+    if (!window.confirm('Να σβήσω ' + (what === 'πίνακα' ? 'τον πίνακα' : 'την εικόνα') + ';')) return;
+    o.remove();
+    setActive(null);
+    editor.focus();
+    afterChange();
+  }
+  $('btnDelTable').addEventListener('click', deleteActive);
+
+  /* Σύρσιμο: μετακίνηση, αλλαγή στηλών/γραμμών, αλλαγή μεγέθους εικόνας */
+  var drag = null;
+  function snap(v) { return Math.round(v / 4) * 4; }
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+
+  function startDrag(e, type, idx) {
+    var o = activeObj;
+    if (!o) return;
+    e.preventDefault();
+    drag = { type: type, sx: e.clientX, sy: e.clientY, o: o, i: idx };
+    if (type === 'move') {
+      drag.l0 = parseFloat(o.style.left) || 0;
+      drag.t0 = parseFloat(o.style.top) || 0;
+    } else if (type === 'col') {
+      drag.tb = o.querySelector('table');
+      drag.cols = drag.tb.querySelectorAll('col');
+      drag.w0 = drag.tb.rows[0].cells[idx].getBoundingClientRect().width;
+    } else if (type === 'row') {
+      drag.tr = o.querySelector('table').rows[idx];
+      drag.h0 = drag.tr.getBoundingClientRect().height;
+    } else if (type === 'img') {
+      drag.w0 = o.getBoundingClientRect().width;
+    }
+    window.addEventListener('pointermove', onDragMove);
+    window.addEventListener('pointerup', endDrag);
+    window.addEventListener('pointercancel', endDrag);
+  }
+  function onDragMove(e) {
+    if (!drag) return;
+    var dx = e.clientX - drag.sx, dy = e.clientY - drag.sy;
+    if (drag.type === 'move') {
+      drag.o.style.left = clamp(snap(drag.l0 + dx), 0, Math.max(0, sheet.clientWidth - 60)) + 'px';
+      drag.o.style.top = clamp(snap(drag.t0 + dy), 0, Math.max(0, editor.offsetHeight)) + 'px';
+      fitHeight();
+    } else if (drag.type === 'col') {
+      var nw = Math.max(30, snap(drag.w0 + dx));
+      drag.cols[drag.i].style.width = nw + 'px';
+      var sum = 0;
+      for (var k = 0; k < drag.cols.length; k++) sum += parseFloat(drag.cols[k].style.width) || 0;
+      drag.tb.style.width = sum + 'px';
+    } else if (drag.type === 'row') {
+      drag.tr.style.height = Math.max(30, snap(drag.h0 + dy)) + 'px';
+    } else if (drag.type === 'img') {
+      drag.o.style.width = Math.max(40, snap(drag.w0 + dx)) + 'px';
+    }
+    layoutOverlay();
+  }
+  function endDrag() {
+    window.removeEventListener('pointermove', onDragMove);
+    window.removeEventListener('pointerup', endDrag);
+    window.removeEventListener('pointercancel', endDrag);
+    drag = null;
+    fitHeight();
+    layoutOverlay();
+    save();
+  }
+
+  overlay.addEventListener('mousedown', function (e) { e.preventDefault(); });
+  overlay.addEventListener('pointerdown', function (e) {
+    var t = e.target;
+    if (!t.classList) return;
+    if (t.classList.contains('mv')) startDrag(e, 'move');
+    else if (t.classList.contains('cg')) startDrag(e, 'col', +t.dataset.i);
+    else if (t.classList.contains('rg')) startDrag(e, 'row', +t.dataset.i);
+    else if (t.classList.contains('rs')) startDrag(e, 'img');
+  });
+  overlay.addEventListener('click', function (e) {
+    if (e.target.classList && e.target.classList.contains('dl')) deleteActive();
+  });
+
+  /* Κλικ πάνω σε εικόνα: επιλογή και σύρσιμο. Κλικ σε πίνακα: επιλογή. */
+  layer.addEventListener('pointerdown', function (e) {
+    var o = e.target.closest ? e.target.closest('.obj') : null;
+    if (!o) return;
+    if (o.dataset.kind === 'img') {
+      e.preventDefault();
+      var a = document.activeElement;
+      if (a && a !== document.body && a.blur) a.blur();
+      setActive(o);
+      startDrag(e, 'move');
+    } else {
+      setActive(o);
+    }
+  });
+  document.addEventListener('pointerdown', function (e) {
+    if (e.target.closest && e.target.closest('.obj, #overlay, #toolbar')) return;
+    if (activeObj) setActive(null);
+  }, true);
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closePops();
+    if ((e.key === 'Delete' || e.key === 'Backspace') && activeObj && activeObj.dataset.kind === 'img') {
+      var a = document.activeElement;
+      if (a && (a === editor || a.isContentEditable || a.tagName === 'SELECT')) return;
+      e.preventDefault();
+      deleteActive();
+    }
+  });
+
+  /* ---------- Νέο / Εκτύπωση ---------- */
+  $('btnNew').addEventListener('click', function () {
+    if (editor.textContent.trim() === '' && !layer.querySelector('.obj')) return;
+    if (window.confirm('Να σβήσω ό,τι έγραψες και να ξεκινήσω καινούργιο χαρτί;')) {
+      setActive(null);
+      layer.innerHTML = '';
+      editor.innerHTML = BLANK_DOC;
+      editor.focus();
+      caretToStart();
+      afterChange();
+    }
+  });
+  $('btnPrint').addEventListener('click', function () { window.print(); });
+
+  /* ---------- Αποθήκευση / Άνοιγμα αρχείου ---------- */
+  var FILE_TYPE = 'kimenografos';
+  var toastTimer = null;
+  function toast(msg) {
+    var t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove('show'); }, 2600);
+  }
+  function isBlank() {
+    return editor.textContent.replace(/\u200b/g, '').trim() === '' && !layer.querySelector('.obj');
+  }
+  function safeName(n) {
+    n = (n || '').replace(/[\\\/:*?"<>|]+/g, ' ').replace(/\.kim$/i, '').trim();
+    return n || 'Το κείμενό μου';
+  }
+  function buildFile() {
+    setActive(null);
+    return JSON.stringify({ type: FILE_TYPE, version: 1, e: editor.innerHTML, l: layer.innerHTML });
+  }
+  function downloadFile(name, text) {
+    var blob = new Blob([text], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 3000);
+  }
+  function saveByDownload(data) {
+    var name = window.prompt('Με ποιο όνομα να αποθηκεύσω το κείμενο;', 'Το κείμενό μου');
+    if (name === null) return;
+    downloadFile(safeName(name) + '.kim', data);
+    toast('Το αρχείο αποθηκεύτηκε! ✔');
+  }
+  function saveFile() {
+    var data = buildFile();
+    if (!window.showSaveFilePicker) { saveByDownload(data); return; }
+    var picked;
+    try {
+      picked = window.showSaveFilePicker({
+        suggestedName: 'Το κείμενό μου.kim',
+        types: [{ description: 'Αρχείο του Κειμενογράφου', accept: { 'application/json': ['.kim'] } }]
+      });
+    } catch (err) { saveByDownload(data); return; }
+    picked.then(function (h) {
+      return h.createWritable().then(function (w) {
+        return w.write(data).then(function () { return w.close(); });
+      });
+    }).then(function () {
+      toast('Το αρχείο αποθηκεύτηκε! ✔');
+    }).catch(function (err) {
+      if (err && err.name === 'AbortError') return;
+      saveByDownload(data);
+    });
+  }
+
+  /* Καθαρίζει το περιεχόμενο που διαβάζουμε από αρχείο */
+  function clean(html) {
+    var doc = new DOMParser().parseFromString('<body>' + html, 'text/html');
+    doc.querySelectorAll('script,style,iframe,object,embed,link,meta,form,input,button,textarea,select,svg,math,base')
+      .forEach(function (n) { n.remove(); });
+    doc.querySelectorAll('*').forEach(function (n) {
+      Array.prototype.slice.call(n.attributes).forEach(function (a) {
+        var nm = a.name.toLowerCase(), v = a.value.trim().toLowerCase();
+        if (nm.indexOf('on') === 0) n.removeAttribute(a.name);
+        else if ((nm === 'src' || nm === 'href' || nm === 'srcset') && v.indexOf('data:image/') !== 0) n.removeAttribute(a.name);
+        else if (nm === 'style' && /url\s*\(|expression|@import/i.test(a.value)) n.removeAttribute(a.name);
+      });
+    });
+    return doc.body.innerHTML;
+  }
+
+  function loadDoc(eHtml, lHtml) {
+    setActive(null);
+    editor.innerHTML = clean(eHtml);
+    layer.innerHTML = clean(lHtml || '');
+    document.querySelector('.desk').scrollTop = 0;
+    ensureNotEmpty();
+    afterChange();
+    setTimeout(afterChange, 300);
+    editor.focus();
+    toast('Το αρχείο άνοιξε! ✔');
+  }
+  function loadPlainText(text) {
+    editor.innerHTML = '';
+    text.replace(/\r\n?/g, '\n').split('\n').forEach(function (line) {
+      var d = document.createElement('div');
+      if (line) d.textContent = line; else d.appendChild(document.createElement('br'));
+      editor.appendChild(d);
+    });
+    var html = editor.innerHTML;
+    loadDoc(html, '');
+  }
+
+  $('btnSave').addEventListener('click', saveFile);
+  $('btnOpen').addEventListener('click', function () {
+    if (!isBlank() && !window.confirm('Αν ανοίξεις ένα αρχείο, θα σβηστεί αυτό που έχεις γράψει τώρα (αν δεν το έχεις αποθηκεύσει). Να συνεχίσω;')) return;
+    $('docIn').click();
+  });
+  $('docIn').addEventListener('change', function () {
+    var input = this;
+    var f = input.files && input.files[0];
+    input.value = '';
+    if (!f) return;
+    var fr = new FileReader();
+    fr.onload = function () {
+      var text = String(fr.result || '');
+      var obj = null;
+      try { obj = JSON.parse(text); } catch (err) {}
+      if (obj && obj.type === FILE_TYPE && typeof obj.e === 'string') {
+        loadDoc(obj.e, typeof obj.l === 'string' ? obj.l : '');
+      } else if (obj && typeof obj === 'object') {
+        window.alert('Αυτό το αρχείο δεν είναι από τον Κειμενογράφο μου.');
+      } else {
+        loadPlainText(text);
+      }
+    };
+    fr.onerror = function () { window.alert('Δεν μπόρεσα να ανοίξω αυτό το αρχείο.'); };
+    fr.readAsText(f);
+  });
+  document.addEventListener('keydown', function (e) {
+    if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && (e.code === 'KeyS' || String(e.key).toLowerCase() === 's')) {
+      e.preventDefault();
+      saveFile();
+    }
+  });
+
+  /* ---------- Κατάσταση κουμπιών ---------- */
+  function updateState() {
+    $('btnDelTable').disabled = !activeObj;
+    var s = window.getSelection();
+    if (!s.rangeCount || !hostOf(s.anchorNode)) return;
+    var map = { bBold: 'bold', bItalic: 'italic', bUnder: 'underline',
+                bUL: 'insertUnorderedList', bOL: 'insertOrderedList' };
+    Object.keys(map).forEach(function (id) {
+      var on = false;
+      try { on = document.queryCommandState(map[id]); } catch (e) {}
+      $(id).classList.toggle('on', !!on);
+    });
+    var e = elOf(s.anchorNode);
+    if (e) {
+      var cs = window.getComputedStyle(e);
+      var fam = cs.fontFamily.split(',')[0].replace(/["']/g, '').trim().toLowerCase();
+      FONTS.forEach(function (f) { if (f[0].toLowerCase() === fam) fontSel.value = f[0]; });
+      var px = parseFloat(cs.fontSize), best = SIZES[0];
+      SIZES.forEach(function (v) { if (Math.abs(v - px) < Math.abs(best - px)) best = v; });
+      sizeSel.value = best;
+    }
+  }
+
+  /* ---------- Γεγονότα επεξεργασίας (κείμενο και πίνακες) ---------- */
+  sheet.addEventListener('input', function () {
+    if (!applyingSize) fixFonts(false);
+    afterChange();
+  });
+
+  sheet.addEventListener('paste', function (e) {
+    e.preventDefault();
+    var t = (e.clipboardData || window.clipboardData).getData('text/plain');
+    if (t) document.execCommand('insertText', false, t);
+  });
+  sheet.addEventListener('drop', function (e) {
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) e.preventDefault();
+  });
+
+  sheet.addEventListener('keydown', function (e) {
+    if (e.key !== 'Tab') return;
+    var s = window.getSelection();
+    var cell = s.rangeCount ? closestCell(s.anchorNode) : null;
+    if (!cell) return;
+    e.preventDefault();
+    var cells = Array.prototype.slice.call(cell.closest('table').querySelectorAll('td'));
+    var i = cells.indexOf(cell) + (e.shiftKey ? -1 : 1);
+    if (cells[i]) placeCaret(cells[i]);
+  });
+
+  /* ---------- Εκκίνηση ---------- */
+  /* Σβήνει ό,τι είχε κρατήσει μια παλιότερη έκδοση και ξεκινά με κενό χαρτί */
+  try { localStorage.removeItem(STORE_KEY); } catch (err) {}
+  editor.innerHTML = BLANK_DOC;
+  layer.innerHTML = '';
+  checkEmpty();
+  fitHeight();
+  editor.focus();
+  caretToStart();
+})();
+</script>
+</body>
+</html>
