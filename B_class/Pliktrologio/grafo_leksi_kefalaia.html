@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Γράφω τη λέξη</title>
+<style>
+  :root{
+    --bg:#fff7e6; --ink:#2d3a4a; --blue:#3b82f6; --green:#22a559; --red:#e5484d;
+    --card:#ffffff; --line:#e3d9c4;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family:"Trebuchet MS","Segoe UI",Arial,sans-serif;
+    background:var(--bg); color:var(--ink); min-height:100vh;
+  }
+  header{text-align:center; padding:14px 10px 4px}
+  header h1{margin:0; font-size:clamp(22px,4vw,34px); color:#d9480f}
+  header p{margin:4px 0 0; font-size:clamp(14px,2vw,18px)}
+  .app{max-width:1000px; margin:0 auto; padding:8px 12px 24px}
+  .stage{display:flex; align-items:stretch; gap:8px}
+  .nav{
+    flex:0 0 auto; align-self:center; width:52px; height:52px; border-radius:50%;
+    border:none; background:var(--blue); color:#fff; font-size:28px; cursor:pointer;
+    box-shadow:0 3px 0 #1d4ed8;
+  }
+  .nav:disabled{background:#b6c2d6; box-shadow:0 3px 0 #94a3b8; cursor:default}
+  .viewport{flex:1; overflow:hidden; border-radius:22px}
+  .track{display:flex; transition:transform .45s ease}
+  .slide{flex:0 0 100%; padding:4px}
+  .card{
+    background:var(--card); border:3px solid var(--line); border-radius:22px; padding:14px;
+  }
+  .card h2{
+    margin:0 0 10px; text-align:center; font-size:clamp(20px,3vw,28px);
+    color:#fff; background:var(--theme); border-radius:14px; padding:8px;
+  }
+  .grid{display:grid; grid-template-columns:repeat(3,1fr); gap:12px}
+  .box{
+    border:3px solid var(--line); border-radius:18px; padding:8px; background:#fffdf8;
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+  }
+  .pic{width:100%; aspect-ratio:1/1; max-height:170px; border-radius:14px; overflow:hidden; background:var(--pbg)}
+  .pic svg{width:100%; height:100%; display:block}
+  .word{font-size:clamp(16px,2.6vw,26px); font-weight:800; letter-spacing:2px; color:#334155; text-align:center}
+  .box input{
+    width:100%; font:inherit; font-size:clamp(16px,2.6vw,26px); font-weight:800; letter-spacing:2px;
+    text-align:center; text-transform:uppercase; padding:8px 4px; border:3px solid #cbd5e1;
+    border-radius:12px; background:#fff; color:#1e293b; outline:none;
+  }
+  .box input:focus{border-color:var(--blue)}
+  .box.ok{border-color:var(--green); background:#e8f8ee}
+  .box.ok input{border-color:var(--green); background:#c9f0d8; color:#0f6b36}
+  .box.bad{border-color:var(--red); background:#fdecec}
+  .box.bad input{border-color:var(--red); background:#fbd0d2; color:#a3171c}
+  .actions{display:flex; align-items:center; justify-content:center; gap:14px; margin-top:12px; flex-wrap:wrap}
+  .check{
+    font:inherit; font-size:clamp(16px,2.4vw,22px); font-weight:800; color:#fff; background:var(--green);
+    border:none; border-radius:16px; padding:10px 22px; cursor:pointer; box-shadow:0 4px 0 #157a40;
+  }
+  .check:active{transform:translateY(2px); box-shadow:0 2px 0 #157a40}
+  .msg{font-size:clamp(16px,2.4vw,22px); font-weight:700; min-height:1.4em}
+  .dots{display:flex; justify-content:center; gap:10px; margin-top:12px}
+  .dot{width:16px; height:16px; border-radius:50%; background:#d6cdb8; border:none; cursor:pointer; padding:0}
+  .dot.on{background:#d9480f; transform:scale(1.25)}
+  @media (max-width:620px){
+    .grid{grid-template-columns:repeat(2,1fr)}
+    .nav{width:42px; height:42px; font-size:22px}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>✏️ Γράφω τη λέξη</h1>
+  <p>Κοίτα την εικόνα, διάβασε τη λέξη και γράψε την με κεφαλαία γράμματα στο κουτάκι.</p>
+</header>
+
+<div class="app">
+  <div class="stage">
+    <button class="nav" id="prev" aria-label="Προηγούμενη κάρτα">◀</button>
+    <div class="viewport"><div class="track" id="track"></div></div>
+    <button class="nav" id="next" aria-label="Επόμενη κάρτα">▶</button>
+  </div>
+  <div class="dots" id="dots"></div>
+</div>
+
+<script>
+/* ---------- Εικόνες (flat vector cartoon, ενσωματωμένες SVG) ---------- */
+var S = function(inner){ return '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">' + inner + '</svg>'; };
+var K = '#2b2b2b';
+
+var CARDS = [
+ { title:'Ζώα', color:'#f08c00', pbg:'#fff0d6', items:[
+  {w:'ΓΑΤΑ', svg:S('<polygon points="22,42 24,14 45,30" fill="#f4a03c"/><polygon points="78,42 76,14 55,30" fill="#f4a03c"/><polygon points="27,34 28,22 38,30" fill="#f7b6c2"/><polygon points="73,34 72,22 62,30" fill="#f7b6c2"/><circle cx="50" cy="56" r="32" fill="#f4a03c"/><ellipse cx="50" cy="68" rx="14" ry="10" fill="#fde3c0"/><circle cx="38" cy="50" r="5" fill="'+K+'"/><circle cx="62" cy="50" r="5" fill="'+K+'"/><circle cx="39.5" cy="48.5" r="1.6" fill="#fff"/><circle cx="63.5" cy="48.5" r="1.6" fill="#fff"/><polygon points="45,60 55,60 50,66" fill="#e76f8a"/><path d="M50 66 q-5 7 -11 3 M50 66 q5 7 11 3" stroke="'+K+'" stroke-width="2" fill="none"/><path d="M8 56h22M9 67l21-4M92 56H70M91 67l-21-4" stroke="'+K+'" stroke-width="2"/>')},
+  {w:'ΣΚΥΛΟΣ', svg:S('<ellipse cx="22" cy="48" rx="13" ry="24" fill="#8d5a3b" transform="rotate(15 22 48)"/><ellipse cx="78" cy="48" rx="13" ry="24" fill="#8d5a3b" transform="rotate(-15 78 48)"/><circle cx="50" cy="52" r="29" fill="#d9a066"/><ellipse cx="50" cy="64" rx="15" ry="12" fill="#f3dcb8"/><circle cx="38" cy="46" r="5" fill="'+K+'"/><circle cx="62" cy="46" r="5" fill="'+K+'"/><circle cx="39.5" cy="44.5" r="1.6" fill="#fff"/><circle cx="63.5" cy="44.5" r="1.6" fill="#fff"/><ellipse cx="50" cy="58" rx="7" ry="5" fill="'+K+'"/><path d="M50 63v5M50 68q-6 6 -11 1M50 68q6 6 11 1" stroke="'+K+'" stroke-width="2" fill="none"/><path d="M44 72q6 12 12 0z" fill="#ef6f84"/>')},
+  {w:'ΨΑΡΙ', svg:S('<polygon points="72,50 94,30 94,70" fill="#f59f00"/><ellipse cx="46" cy="50" rx="34" ry="24" fill="#4dabf7"/><path d="M40 28q8-14 22-6l-6 10z" fill="#f59f00"/><path d="M40 72q6 10 18 4l-6-10z" fill="#f59f00"/><circle cx="29" cy="44" r="7" fill="#fff"/><circle cx="27" cy="44" r="3.5" fill="'+K+'"/><path d="M14 56q6 5 12 1" stroke="'+K+'" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M48 34q6 16 0 32M58 36q5 14 0 28" stroke="#1c7ed6" stroke-width="2.4" fill="none"/>')},
+  {w:'ΠΟΥΛΙ', svg:S('<path d="M40 84l-4 10M52 84l2 10M30 94h12M48 94h12" stroke="#f08c00" stroke-width="3" fill="none" stroke-linecap="round"/><ellipse cx="48" cy="62" rx="28" ry="24" fill="#ffd43b"/><circle cx="68" cy="36" r="17" fill="#ffd43b"/><polygon points="82,32 98,38 82,44" fill="#f76707"/><circle cx="71" cy="32" r="3.8" fill="'+K+'"/><path d="M66 20q-2-9 4-12M71 19q1-9 8-9" stroke="#f08c00" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M26 56q14-2 26 10q-14 8-26-2z" fill="#fab005"/><path d="M22 66l-14 6 14 4z" fill="#fab005"/>')},
+  {w:'ΦΙΔΙ', svg:S('<path d="M18 84q22-6 12-20T62 54Q40 44 56 34" stroke="#51cf66" stroke-width="15" fill="none" stroke-linecap="round"/><path d="M18 84q22-6 12-20T62 54Q40 44 56 34" stroke="#2f9e44" stroke-width="4" fill="none" stroke-dasharray="3 12" stroke-linecap="round"/><ellipse cx="60" cy="24" rx="17" ry="13" fill="#51cf66"/><circle cx="54" cy="20" r="3.6" fill="'+K+'"/><circle cx="68" cy="20" r="3.6" fill="'+K+'"/><path d="M60 35v13M60 48l-5 6M60 48l5 6" stroke="#e03131" stroke-width="2.4" fill="none" stroke-linecap="round"/>')},
+  {w:'ΧΕΛΩΝΑ', svg:S('<ellipse cx="22" cy="64" rx="9" ry="6" fill="#74c69d"/><circle cx="85" cy="56" r="13" fill="#74c69d"/><circle cx="89" cy="52" r="3" fill="'+K+'"/><path d="M88 62q-4 2-8 0" stroke="'+K+'" stroke-width="2" fill="none"/><rect x="32" y="66" width="12" height="14" rx="4" fill="#74c69d"/><rect x="60" y="66" width="12" height="14" rx="4" fill="#74c69d"/><path d="M14 70q0-42 38-42t38 42z" fill="#2f9e44"/><path d="M30 68q0-26 22-26t22 26M52 28v40M32 52h40" stroke="#1b7a33" stroke-width="2.6" fill="none"/>')}
+ ]},
+ { title:'Φρούτα', color:'#e03131', pbg:'#ffe8e8', items:[
+  {w:'ΜΗΛΟ', svg:S('<path d="M50 30q-2-12 4-20" stroke="#6b4423" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M54 18q16-12 28 0q-14 12-28 0z" fill="#51cf66"/><path d="M50 32q-18-10-32 4-12 18 0 40 12 20 32 12 20 8 32-12 12-22 0-40-14-14-32-4z" fill="#e03131"/><path d="M28 46q2-8 10-10" stroke="#ff8787" stroke-width="4" fill="none" stroke-linecap="round"/>')},
+  {w:'ΜΠΑΝΑΝΑ', svg:S('<path d="M18 30q4 50 62 52 8 0 12-6-40 4-54-42z" fill="#ffd43b"/><path d="M18 30q4 50 62 52" stroke="#f59f00" stroke-width="3" fill="none"/><rect x="12" y="20" width="10" height="14" rx="3" fill="#6b4423" transform="rotate(-10 17 27)"/><rect x="84" y="72" width="10" height="9" rx="2" fill="#6b4423" transform="rotate(-30 89 76)"/>')},
+  {w:'ΣΤΑΦΥΛΙ', svg:S('<path d="M52 20q0-10 8-12" stroke="#6b4423" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M52 18q16-10 28 2q-14 10-28-2z" fill="#51cf66"/><circle cx="36" cy="36" r="10" fill="#7048e8"/><circle cx="56" cy="36" r="10" fill="#7048e8"/><circle cx="74" cy="40" r="9" fill="#7048e8"/><circle cx="28" cy="56" r="10" fill="#845ef7"/><circle cx="47" cy="54" r="10" fill="#7048e8"/><circle cx="66" cy="56" r="10" fill="#845ef7"/><circle cx="38" cy="73" r="10" fill="#7048e8"/><circle cx="58" cy="73" r="10" fill="#845ef7"/><circle cx="48" cy="88" r="9" fill="#7048e8"/><circle cx="33" cy="32" r="3" fill="#b197fc"/><circle cx="44" cy="50" r="3" fill="#b197fc"/>')},
+  {w:'ΚΕΡΑΣΙ', svg:S('<path d="M30 66q10-44 38-54M70 70q-4-34-2-58" stroke="#2f9e44" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M66 14q18-6 26 8q-16 4-26-8z" fill="#51cf66"/><circle cx="30" cy="72" r="19" fill="#c92a2a"/><circle cx="70" cy="74" r="19" fill="#e03131"/><path d="M20 64q2-8 9-9M60 66q2-8 9-9" stroke="#ff8787" stroke-width="4" fill="none" stroke-linecap="round"/>')},
+  {w:'ΠΟΡΤΟΚΑΛΙ', svg:S('<path d="M50 22q0-10 6-14" stroke="#6b4423" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M54 20q16-12 28 0q-14 12-28 0z" fill="#51cf66"/><circle cx="50" cy="56" r="34" fill="#fd7e14"/><circle cx="36" cy="44" r="3" fill="#ffa94d"/><circle cx="56" cy="40" r="3" fill="#ffa94d"/><circle cx="64" cy="58" r="3" fill="#ffa94d"/><circle cx="44" cy="62" r="3" fill="#ffa94d"/><circle cx="34" cy="72" r="3" fill="#ffa94d"/><circle cx="58" cy="76" r="3" fill="#ffa94d"/><path d="M30 38q4-10 14-14" stroke="#ffc078" stroke-width="4" fill="none" stroke-linecap="round"/>')},
+  {w:'ΑΧΛΑΔΙ', svg:S('<path d="M50 28q0-12 6-18" stroke="#6b4423" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M54 16q16-10 28 2q-16 8-28-2z" fill="#2f9e44"/><path d="M50 24q-18 0-18 20 0 10-14 22-4 22 32 26 36-4 32-26-14-12-14-22 0-20-18-20z" fill="#a9d63b"/><path d="M40 44q-2 8 -8 16" stroke="#d8f5a2" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="62" cy="70" r="2.4" fill="#74b816"/><circle cx="50" cy="80" r="2.4" fill="#74b816"/><circle cx="36" cy="72" r="2.4" fill="#74b816"/>')}
+ ]},
+ { title:'Μέσα μεταφοράς', color:'#1971c2', pbg:'#e3f1ff', items:[
+  {w:'ΑΥΤΟΚΙΝΗΤΟ', svg:S('<path d="M8 64q0-10 10-12l14-4 12-16q4-4 10-4h14q6 0 10 4l10 16q12 2 12 14v8q0 4-4 4H12q-4 0-4-4z" fill="#e03131"/><path d="M40 34l-10 14h20V30zM56 30v18h22L68 34q-2-4-6-4z" fill="#a5d8ff"/><circle cx="28" cy="74" r="12" fill="#343a40"/><circle cx="28" cy="74" r="5" fill="#ced4da"/><circle cx="74" cy="74" r="12" fill="#343a40"/><circle cx="74" cy="74" r="5" fill="#ced4da"/><rect x="86" y="58" width="6" height="8" rx="2" fill="#ffd43b"/>')},
+  {w:'ΠΛΟΙΟ', svg:S('<rect x="42" y="34" width="26" height="22" fill="#f1f3f5"/><rect x="48" y="40" width="6" height="6" fill="#4dabf7"/><rect x="58" y="40" width="6" height="6" fill="#4dabf7"/><rect x="52" y="20" width="10" height="14" fill="#e03131"/><rect x="52" y="20" width="10" height="4" fill="#343a40"/><path d="M8 56h84l-12 24H24z" fill="#1c7ed6"/><path d="M8 56h84l-2 4H10z" fill="#e03131"/><path d="M0 84q8-6 16 0t16 0t16 0t16 0t16 0t20 0v16H0z" fill="#4dabf7"/>')},
+  {w:'ΑΕΡΟΠΛΑΝΟ', svg:S('<polygon points="18,30 30,30 44,46 30,46" fill="#e03131"/><ellipse cx="52" cy="52" rx="42" ry="13" fill="#f1f3f5"/><path d="M14 54q38 8 76-4 4 4 0 6-38 10-76 0z" fill="#ced4da"/><polygon points="44,56 62,56 40,90 30,90" fill="#4dabf7"/><polygon points="44,46 62,46 40,14 30,14" fill="#4dabf7"/><circle cx="76" cy="50" r="3.2" fill="#4dabf7"/><circle cx="68" cy="50" r="3.2" fill="#4dabf7"/><circle cx="60" cy="50" r="3.2" fill="#4dabf7"/>')},
+  {w:'ΠΟΔΗΛΑΤΟ', svg:S('<circle cx="24" cy="68" r="18" fill="none" stroke="#343a40" stroke-width="5"/><circle cx="76" cy="68" r="18" fill="none" stroke="#343a40" stroke-width="5"/><path d="M24 68l16-34h26M40 34l10 34H24M66 34l10 34M50 68l16-34" stroke="#e03131" stroke-width="5" fill="none" stroke-linejoin="round" stroke-linecap="round"/><path d="M34 28h14" stroke="#343a40" stroke-width="6" stroke-linecap="round"/><path d="M62 28l6 6M60 26h14" stroke="#343a40" stroke-width="5" stroke-linecap="round"/>')},
+  {w:'ΤΡΕΝΟ', svg:S('<rect x="14" y="30" width="46" height="40" rx="4" fill="#2f9e44"/><rect x="60" y="14" width="26" height="56" rx="4" fill="#e03131"/><rect x="66" y="22" width="14" height="14" fill="#a5d8ff"/><rect x="18" y="14" width="12" height="16" fill="#343a40"/><ellipse cx="24" cy="12" rx="10" ry="5" fill="#dee2e6"/><rect x="8" y="68" width="86" height="8" fill="#868e96"/><circle cx="28" cy="78" r="10" fill="#343a40"/><circle cx="52" cy="78" r="10" fill="#343a40"/><circle cx="76" cy="78" r="10" fill="#343a40"/><circle cx="28" cy="78" r="4" fill="#ced4da"/><circle cx="52" cy="78" r="4" fill="#ced4da"/><circle cx="76" cy="78" r="4" fill="#ced4da"/><rect x="2" y="52" width="14" height="10" fill="#ffd43b"/>')},
+  {w:'ΛΕΩΦΟΡΕΙΟ', svg:S('<rect x="6" y="24" width="88" height="52" rx="10" fill="#fab005"/><rect x="14" y="32" width="16" height="16" rx="2" fill="#a5d8ff"/><rect x="34" y="32" width="16" height="16" rx="2" fill="#a5d8ff"/><rect x="54" y="32" width="16" height="16" rx="2" fill="#a5d8ff"/><rect x="74" y="32" width="14" height="30" rx="2" fill="#a5d8ff"/><rect x="6" y="56" width="64" height="5" fill="#e67700"/><circle cx="26" cy="78" r="11" fill="#343a40"/><circle cx="26" cy="78" r="4" fill="#ced4da"/><circle cx="72" cy="78" r="11" fill="#343a40"/><circle cx="72" cy="78" r="4" fill="#ced4da"/>')}
+ ]},
+ { title:'Καιρός', color:'#0c8599', pbg:'#e0f7fa', items:[
+  {w:'ΗΛΙΟΣ', svg:S('<g stroke="#fab005" stroke-width="6" stroke-linecap="round"><path d="M50 6v14M50 80v14M6 50h14M80 50h14M19 19l10 10M71 71l10 10M81 19L71 29M29 71L19 81"/></g><circle cx="50" cy="50" r="25" fill="#ffd43b"/><circle cx="41" cy="46" r="3.4" fill="'+K+'"/><circle cx="59" cy="46" r="3.4" fill="'+K+'"/><path d="M40 58q10 10 20 0" stroke="'+K+'" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="35" cy="56" r="4" fill="#ffa8a8"/><circle cx="65" cy="56" r="4" fill="#ffa8a8"/>')},
+  {w:'ΒΡΟΧΗ', svg:S('<path d="M24 56q-16 0-16-14t16-14q4-16 24-16t26 16q18 0 18 14t-16 14z" fill="#868e96"/><g fill="#339af0"><path d="M26 66q6 10 0 16q-6-6 0-16z"/><path d="M48 70q6 10 0 16q-6-6 0-16z"/><path d="M70 66q6 10 0 16q-6-6 0-16z"/><path d="M37 82q5 8 0 13q-5-5 0-13z"/><path d="M59 84q5 8 0 13q-5-5 0-13z"/></g>')},
+  {w:'ΧΙΟΝΙ', svg:S('<path d="M24 50q-16 0-16-14t16-14q4-16 24-16t26 16q18 0 18 14t-16 14z" fill="#adb5bd"/><g stroke="#4dabf7" stroke-width="3.5" stroke-linecap="round"><path d="M26 64v16M18 72h16M20 66l12 12M32 66L20 78"/><path d="M52 70v16M44 78h16M46 72l12 12M58 72L46 84"/><path d="M78 64v16M70 72h16M72 66l12 12M84 66L72 78"/></g>')},
+  {w:'ΣΥΝΝΕΦΟ', svg:S('<circle cx="76" cy="26" r="12" fill="#ffd43b"/><path d="M26 76q-18 0-18-16t18-16q2-18 24-18t26 18q18 0 18 16t-18 16z" fill="#ffffff" stroke="#a5d8ff" stroke-width="3"/><circle cx="38" cy="58" r="3" fill="'+K+'"/><circle cx="62" cy="58" r="3" fill="'+K+'"/><path d="M42 66q8 6 16 0" stroke="'+K+'" stroke-width="2.6" fill="none" stroke-linecap="round"/>')},
+  {w:'ΟΜΠΡΕΛΑ', svg:S('<path d="M8 52q0-40 42-40t42 40q-10-8-21-8t-21 8q-10-8-21-8t-21 8z" fill="#e03131"/><path d="M50 12q-14 8-14 32M50 12q14 8 14 32" stroke="#a51111" stroke-width="2.4" fill="none"/><path d="M50 12v4M50 46v38q0 10-10 10t-10-10" stroke="#495057" stroke-width="5" fill="none" stroke-linecap="round"/>')},
+  {w:'ΛΟΥΛΟΥΔΙ', svg:S('<path d="M50 52v42" stroke="#2f9e44" stroke-width="6" stroke-linecap="round"/><path d="M50 80q-22-4-26-20 20-2 26 20z" fill="#51cf66"/><path d="M50 74q22-4 26-20-20-2-26 20z" fill="#51cf66"/><g fill="#f783ac"><circle cx="50" cy="20" r="13"/><circle cx="72" cy="36" r="13"/><circle cx="64" cy="58" r="0"/><circle cx="28" cy="36" r="13"/><circle cx="36" cy="58" r="13"/><circle cx="64" cy="58" r="13"/></g><circle cx="50" cy="40" r="13" fill="#ffd43b"/>')}
+ ]},
+ { title:'Αντικείμενα', color:'#7048e8', pbg:'#efe9ff', items:[
+  {w:'ΒΙΒΛΙΟ', svg:S('<rect x="22" y="12" width="60" height="78" rx="5" fill="#1c7ed6"/><rect x="22" y="12" width="12" height="78" rx="4" fill="#1864ab"/><rect x="40" y="24" width="34" height="22" rx="3" fill="#ffd43b"/><path d="M42 58h30M42 68h30M42 78h20" stroke="#fff" stroke-width="4" stroke-linecap="round"/><rect x="26" y="86" width="58" height="6" rx="2" fill="#f1f3f5"/>')},
+  {w:'ΜΟΛΥΒΙ', svg:S('<g transform="rotate(-45 50 50)"><rect x="14" y="40" width="14" height="20" rx="3" fill="#f783ac"/><rect x="26" y="40" width="8" height="20" fill="#adb5bd"/><rect x="34" y="40" width="46" height="20" fill="#fcc419"/><path d="M34 46h46M34 54h46" stroke="#f59f00" stroke-width="2"/><polygon points="80,40 96,50 80,60" fill="#f1d9b5"/><polygon points="90,47 96,50 90,53" fill="#343a40"/></g>')},
+  {w:'ΣΠΙΤΙ', svg:S('<rect x="68" y="14" width="12" height="26" fill="#c92a2a"/><rect x="18" y="46" width="64" height="46" fill="#ffe8cc"/><polygon points="8,48 50,12 92,48" fill="#e03131"/><rect x="42" y="64" width="18" height="28" rx="2" fill="#a5642d"/><circle cx="56" cy="78" r="2" fill="#ffd43b"/><rect x="24" y="56" width="14" height="14" fill="#74c0fc"/><rect x="66" y="56" width="12" height="14" fill="#74c0fc"/><path d="M31 56v14M24 63h14" stroke="#fff" stroke-width="2"/>')},
+  {w:'ΚΛΕΙΔΙ', svg:S('<circle cx="28" cy="34" r="22" fill="#fcc419"/><circle cx="28" cy="34" r="9" fill="#fff0c8"/><rect x="40" y="46" width="14" height="46" rx="5" fill="#fcc419" transform="rotate(-45 47 69)"/><rect x="34" y="54" width="46" height="12" rx="5" fill="#fcc419" transform="rotate(45 57 60)"/><path d="M64 70l12-6 6 6-8 8M74 80l10-4 6 6-8 8" fill="#f59f00"/>')},
+  {w:'ΡΟΛΟΙ', svg:S('<circle cx="50" cy="50" r="40" fill="#e03131"/><circle cx="50" cy="50" r="32" fill="#fff"/><g stroke="#343a40" stroke-width="3" stroke-linecap="round"><path d="M50 22v6M50 72v6M22 50h6M72 50h6"/></g><path d="M50 50V32" stroke="#343a40" stroke-width="5" stroke-linecap="round"/><path d="M50 50l14 8" stroke="#e03131" stroke-width="4" stroke-linecap="round"/><circle cx="50" cy="50" r="4" fill="#343a40"/>')},
+  {w:'ΜΠΑΛΑ', svg:S('<circle cx="50" cy="50" r="38" fill="#fd7e14"/><path d="M12 50h76M50 12v76" stroke="#343a40" stroke-width="3"/><path d="M22 22q22 24 0 56M78 22q-22 24 0 56" stroke="#343a40" stroke-width="3" fill="none"/><path d="M26 28q-6 6-8 12" stroke="#ffc078" stroke-width="4" fill="none" stroke-linecap="round"/>')}
+ ]}
+];
+
+/* ---------- Βοηθητικά ---------- */
+function clean(s){
+  return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/ς/g,'Σ').replace(/\s+/g,'');
+}
+
+/* ---------- Δημιουργία καρτών ---------- */
+var track = document.getElementById('track');
+var dotsEl = document.getElementById('dots');
+var current = 0;
+
+CARDS.forEach(function(card, ci){
+  var slide = document.createElement('div');
+  slide.className = 'slide';
+  var html = '<div class="card" style="--theme:'+card.color+'"><h2>Κάρτα '+(ci+1)+': '+card.title+'</h2><div class="grid">';
+  card.items.forEach(function(it, ii){
+    html += '<div class="box" data-word="'+it.w+'">' +
+      '<div class="pic" style="--pbg:'+card.pbg+'">'+it.svg+'</div>' +
+      '<div class="word">'+it.w+'</div>' +
+      '<input type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Γράψε τη λέξη '+it.w+'">' +
+      '</div>';
+  });
+  html += '</div><div class="actions"><button class="check">✔ Έλεγχος λαθών</button><span class="msg"></span></div></div>';
+  slide.innerHTML = html;
+  track.appendChild(slide);
+
+  var boxes = slide.querySelectorAll('.box');
+  var msg = slide.querySelector('.msg');
+
+  boxes.forEach(function(box){
+    var inp = box.querySelector('input');
+    inp.addEventListener('input', function(){
+      var c = clean(inp.value);
+      var shown = inp.value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/ς/g,'Σ');
+      if(shown !== inp.value){ inp.value = shown; }
+      box.classList.remove('ok','bad');
+      msg.textContent = '';
+    });
+  });
+
+  slide.querySelector('.check').addEventListener('click', function(){
+    var good = 0;
+    boxes.forEach(function(box){
+      var inp = box.querySelector('input');
+      var ok = clean(inp.value) === box.getAttribute('data-word');
+      box.classList.remove('ok','bad');
+      box.classList.add(ok ? 'ok' : 'bad');
+      if(ok) good++;
+    });
+    if(good === boxes.length){
+      msg.style.color = '#157a40';
+      msg.textContent = '🌟 Μπράβο! Όλες οι λέξεις είναι σωστές!';
+    } else {
+      msg.style.color = '#a3171c';
+      msg.textContent = 'Σωστές: ' + good + ' από ' + boxes.length + '. Διόρθωσε τις κόκκινες!';
+    }
+  });
+
+  var d = document.createElement('button');
+  d.className = 'dot';
+  d.setAttribute('aria-label', 'Κάρτα ' + (ci+1));
+  d.addEventListener('click', function(){ go(ci); });
+  dotsEl.appendChild(d);
+});
+
+/* ---------- Καρουζέλ ---------- */
+var prev = document.getElementById('prev');
+var next = document.getElementById('next');
+function go(n){
+  current = Math.max(0, Math.min(CARDS.length-1, n));
+  track.style.transform = 'translateX(' + (-100*current) + '%)';
+  prev.disabled = current === 0;
+  next.disabled = current === CARDS.length-1;
+  var ds = dotsEl.children;
+  for(var i=0;i<ds.length;i++){ ds[i].classList.toggle('on', i===current); }
+}
+prev.addEventListener('click', function(){ go(current-1); });
+next.addEventListener('click', function(){ go(current+1); });
+go(0);
+</script>
+</body>
+</html>
