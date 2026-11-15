@@ -27,8 +27,8 @@ select{height:34px;font-size:14px;border-radius:6px;border:1px solid #b9c2dd;pad
 #selFont{width:150px}
 #selSize{width:68px}
 input[type=color].cover{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:0;padding:0}
-.sw{display:block;font-weight:700;font-size:17px;line-height:1;border-bottom:5px solid #222222;box-shadow:0 1px 0 #99a}
-.bgsw{display:block;width:22px;height:16px;border:1px solid #667;border-radius:3px;background:#ffffff}
+.sw{display:block;font-weight:700;font-size:17px;line-height:1;border-bottom:5px solid #e03131}
+.bgsw{display:block;width:22px;height:16px;border:1px solid #667;border-radius:3px;background:#ffec99}
 .dd{position:relative}
 .menu{display:none;position:absolute;top:100%;left:0;margin-top:5px;background:#fff;border:1px solid #b9c2dd;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.25);padding:6px;z-index:50;width:270px}
 .menu.open{display:block}
@@ -156,7 +156,7 @@ input[type=color].cover{position:absolute;inset:0;width:100%;height:100%;opacity
 
   <div class="grp">
     <div class="row">
-      <div class="dd"><button class="tool" id="btnBg" title="Χρώμα φόντου διαφάνειας"><span class="ico"><span class="bgsw" id="bgSw" style="background:#ffffff"></span></span>Χρώμα φόντου</button><div class="menu pal" id="bgPal"></div></div>
+      <div class="dd"><button class="tool" id="btnBg" title="Χρώμα φόντου διαφάνειας"><span class="ico"><span class="bgsw" id="bgSw" style="background:#ffec99"></span></span>Χρώμα φόντου</button><div class="menu pal" id="bgPal"></div></div>
     </div>
     <div class="lbl">Φόντο</div>
   </div>
@@ -174,7 +174,7 @@ input[type=color].cover{position:absolute;inset:0;width:100%;height:100%;opacity
   <div id="thumbs"></div>
   <div id="work"><div id="wrap"></div></div>
 </div>
-<div id="status"><span id="stTxt"></span><span>💡 Αν δεν έχεις επιλέξει λέξεις, η αλλαγή γίνεται σε ολόκληρο το πλαίσιο. Εικόνα: κουμπί «Εικόνα», σύρσιμο αρχείου ή επικόλληση (Ctrl+V ή δεξί κλικ σε κενό σημείο). Σύρε την εικόνα για να τη μετακινήσεις και τράβα τις γωνίες της για να αλλάξει μέγεθος.</span></div>
+<div id="status"><span id="stTxt"></span><span id="stTip">💡 Αν δεν έχεις επιλέξει λέξεις, η αλλαγή γίνεται σε ολόκληρο το πλαίσιο. Εικόνα: κουμπί «Εικόνα», σύρσιμο αρχείου ή επικόλληση (Ctrl+V ή δεξί κλικ σε κενό σημείο). Σύρε την εικόνα για να τη μετακινήσεις και τράβα τις γωνίες της για να αλλάξει μέγεθος.</span></div>
 <div class="ctx" id="ctx"></div>
 <div id="toast"></div>
 <input type="file" id="fileIn" accept=".json,application/json" hidden>
@@ -400,6 +400,7 @@ function insertImage(file){
   im.src=url;
 }
 function placeImage(src,iw,ih){
+  if(!slides.length){toast('Πρώτα φτιάξε μια διαφάνεια ➕');return;}
   const s=slides[cur];
   const empty=b=>!b.img&&b.ph==='Κάνε κλικ για να γράψεις'&&String(b.html).replace(/<[^>]*>|&nbsp;/g,'').trim()==='';
   const pos=clickPos;
@@ -455,6 +456,8 @@ function handleImagePaste(e){
 function renderStage(){
   clickPos=null;
   wrap.innerHTML='';
+  if(!slides.length){wrap.style.display='none';return;}
+  wrap.style.display='';
   const sl=buildSlide(slides[cur],true);
   sl.tabIndex=-1;
   // κλικ σε κενό σημείο: θυμάται τη θέση για την επόμενη εικόνα (επικόλληση ή εισαγωγή)
@@ -506,9 +509,8 @@ function markCur(){
 function setFcSw(c){$('fcSw').style.borderBottomColor=c;}
 function setBgSw(c){$('bgSw').style.background=c;}
 function syncControls(){
-  $('stTxt').textContent='Διαφάνεια '+(cur+1)+' από '+slides.length;
-  setBgSw(slides[cur].bg);
-  setFcSw('#222222');
+  $('stTxt').textContent=slides.length?'Διαφάνεια '+(cur+1)+' από '+slides.length:'Πάτησε «Νέα διαφάνεια»';
+  $('stTip').style.display=slides.length?'':'none';
 }
 function renderAll(){renderThumbs();renderStage();syncControls();}
 function select(i){
@@ -547,13 +549,14 @@ function snap(key){
 function undo(){
   if(!undoStack.length){toast('Δεν υπάρχει κάτι να αναιρέσω');return;}
   const d=JSON.parse(undoStack.pop(),unpackImg);
-  slides=d.s;cur=Math.min(d.c,slides.length-1);
+  slides=d.s;cur=Math.max(0,Math.min(d.c,slides.length-1));
   activeBox=null;savedRange=null;lastKey=null;dirty=true;
   clearTimeout(thumbTimer);
   renderAll();updateUndoBtn();
 }
 function updateUndoBtn(){$('btnUndo').classList.toggle('dis',!undoStack.length);}
 function setBg(v){
+  if(!slides.length){toast('Πρώτα φτιάξε μια διαφάνεια ➕');return;}
   snap('bg'+cur);
   slides[cur].bg=v;
   setBgSw(v);
@@ -580,16 +583,17 @@ function startDrag(e,g,w,b){
 /* ---------- διαφάνειες ---------- */
 function addSlide(layout){
   snap();
-  slides.splice(cur+1,0,makeSlide(layout));
-  cur++;activeBox=null;savedRange=null;dirty=true;
+  const at=slides.length?cur+1:0;
+  slides.splice(at,0,makeSlide(layout));
+  cur=at;activeBox=null;savedRange=null;dirty=true;
   renderAll();
 }
 function delSlide(){
+  if(!slides.length)return;
   if(!confirm('Να διαγραφεί η τρέχουσα διαφάνεια;'))return;
   snap();
   slides.splice(cur,1);
-  if(!slides.length)slides.push(makeSlide('title'));
-  cur=Math.min(cur,slides.length-1);
+  cur=Math.max(0,Math.min(cur,slides.length-1));
   activeBox=null;savedRange=null;dirty=true;
   renderAll();
 }
@@ -608,7 +612,6 @@ function refreshToolbar(){
   }
   const cs=getComputedStyle(el);
   selSize.value=String(Math.round(parseFloat(cs.fontSize)));
-  setFcSw(cs.color);
   bB.classList.toggle('on',parseInt(cs.fontWeight,10)>=600);
   bI.classList.toggle('on',cs.fontStyle==='italic');
   let u=false;
@@ -648,6 +651,7 @@ function boxLevel(box,kind,val){
 function applyFmt(kind,val){
   if(!activeBox||!activeBox.isConnected){toast('Πρώτα κάνε κλικ μέσα σε ένα πλαίσιο κειμένου ✏️');return;}
   const box=activeBox;
+  if(kind==='color')setFcSw(val);
   snap(kind==='color'?'fmtcolor':null);
   inFmt=true;
   const hasSel=savedRange&&!savedRange.collapsed&&box.contains(savedRange.commonAncestorContainer);
@@ -671,6 +675,7 @@ function applyFmt(kind,val){
 
 /* ---------- άνοιγμα / αποθήκευση ---------- */
 async function save(){
+  if(!slides.length){toast('Δεν υπάρχουν διαφάνειες για αποθήκευση');return;}
   const data=JSON.stringify({app:'presentation-kids',version:1,slides},null,1);
   // Παράθυρο επιλογής τοποθεσίας (σύστημα αρχείων του υπολογιστή)
   if(window.showSaveFilePicker){
@@ -716,6 +721,7 @@ function openFile(f){
 
 /* ---------- παρουσίαση ---------- */
 function play(){
+  if(!slides.length){toast('Δεν υπάρχουν διαφάνειες για παρουσίαση');return;}
   let i=cur;
   const ov=document.createElement('div');ov.className='play';
   const hold=document.createElement('div');hold.className='hold';
@@ -929,7 +935,7 @@ function fsUpd(){
 document.addEventListener('fullscreenchange',fsUpd);
 document.addEventListener('webkitfullscreenchange',fsUpd);
 
-slides=[makeSlide('title')];
+slides=[];
 renderAll();
 updateUndoBtn();
 })();
