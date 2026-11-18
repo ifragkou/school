@@ -1067,6 +1067,7 @@
   var savedRange = null;
   var currentPx = DEFAULT_PX;
   var applyingSize = false;
+  var pendingPx = null; /* μέγεθος που διάλεξε ο μαθητής χωρίς επιλεγμένο κείμενο, μέχρι να γράψει ή να κάνει κλικ αλλού */
 
   function cellOf(node) {
     var e = node && (node.nodeType === 1 ? node : node.parentElement);
@@ -1255,6 +1256,7 @@
     applyingSize = false;
     fixFonts(!wasCollapsed);
     afterChange();
+    pendingPx = wasCollapsed ? currentPx : null;
     if (wasCollapsed) sizeSel.value = currentPx;
   });
 
@@ -1335,7 +1337,7 @@
     if (!e) return;
     var px = parseFloat(window.getComputedStyle(e).fontSize), best = SIZES[0];
     SIZES.forEach(function (v) { if (Math.abs(v - px) < Math.abs(best - px)) best = v; });
-    sizeSel.value = best;
+    sizeSel.value = pendingPx !== null ? pendingPx : best;
     var fam = window.getComputedStyle(e).fontFamily.split(',')[0].replace(/["']/g, '').trim().toLowerCase();
     FONTS.forEach(function (f) { if (f[0].toLowerCase() === fam) fontSel.value = f[0]; });
     var cellEl = cellOf(s.anchorNode);
@@ -1356,7 +1358,10 @@
   }
 
   /* ---------- Γράψιμο στα κουτάκια ---------- */
+  panelsEl.addEventListener('pointerdown', function () { pendingPx = null; });
+  panelsEl.addEventListener('keydown', function (e) { if (e.key.indexOf('Arrow') === 0 || e.key === 'Home' || e.key === 'End') pendingPx = null; });
   panelsEl.addEventListener('input', function (e) {
+    pendingPx = null;
     if (!applyingSize) fixFonts(false);
     var c = cellOf(e.target);
     if (c) {
