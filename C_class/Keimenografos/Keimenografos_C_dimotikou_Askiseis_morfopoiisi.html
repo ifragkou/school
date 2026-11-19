@@ -641,15 +641,18 @@
         { t: ' έχουν βάλει στοίχημα να κάνουν το γύρο του κόσμου σε ' },
         { t: '80 ημέρες', id: 'e', b: true, i: true },
         { t: '. Ξεκινούν, λοιπόν, μια τρελή περιπέτεια η οποία θα τους κάνει να ανακαλύψουν πολλές χώρες και πολλές πόλεις, ' },
-        { t: 'αντιμετωπίζοντας πολλούς κινδύνους.', id: 'f', u: true }
+        { t: 'αντιμετωπίζοντας πολλούς κινδύνους.', id: 'f', u: true },
+        { t: ' Στο ταξίδι τους στην Ινδία σώζουν μια όμορφη πριγκίπισσα, ' },
+        { t: 'την Ούντα.', id: 'g', size: 30, color: '#FFC000' }
       ],
       callouts: [
         { pos: 'TM', id: 'a', chips: [['color', '#FF0000']] },
-        { pos: 'TR', id: 'b', chips: [['B']] },
+        { pos: 'TR', dx: 170, off: 26, id: 'b', chips: [['B']] },
         { pos: 'ML', follow: true, dy: 40, id: 'c', chips: [['color', '#00B0F0'], ['B']] },
         { pos: 'MR', follow: true, id: 'd', chips: [['color', '#00B050'], ['B']] },
-        { pos: 'BL', id: 'e', chips: [['B'], ['I']] },
-        { pos: 'BM', id: 'f', chips: [['U']] }
+        { pos: 'ML', follow: true, dy: 38, id: 'e', chips: [['B'], ['I']] },
+        { pos: 'BR', off: 38, id: 'f', chips: [['U']] },
+        { pos: 'BM', id: 'g', chips: [['size', 30], ['color', '#FFC000']] }
       ]
     }
   ];
@@ -771,7 +774,7 @@
       var g = mk('div', 'grp');
       co.chips.forEach(function (k) { g.appendChild(makeChip(k, ex)); });
       card.appendChild(g);
-      panel.callouts.push({ el: g, pos: co.pos, follow: !!co.follow, dy: co.dy || 0, span: spans[co.id] });
+      panel.callouts.push({ el: g, pos: co.pos, follow: !!co.follow, dy: co.dy || 0, dx: co.dx || 0, off: co.off || 0, span: spans[co.id] });
     });
     left.appendChild(card);
     panel.card = card; panel.mt = mt; panel.svg = svg;
@@ -811,10 +814,10 @@
         var fr = frs.reduce(function (a, r) { return (lft ? r.left < a.left : r.right > a.right) ? r : a; });
         fy = Math.min(Math.max(0, fr.top - cr.top - 8 - c.el.offsetHeight / 2 + (c.dy || 0)), cr.height - c.el.offsetHeight);
       }
-      c.el.style.top = v === 'T' ? '12px' : (v === 'M' ? (fy !== null ? fy : Math.max(0, (cr.height - c.el.offsetHeight) / 2)) + 'px' : '');
-      c.el.style.bottom = v === 'B' ? '12px' : '';
+      c.el.style.top = v === 'T' ? (12 + (c.off || 0)) + 'px' : (v === 'M' ? (fy !== null ? fy : Math.max(0, (cr.height - c.el.offsetHeight) / 2)) + 'px' : '');
+      c.el.style.bottom = v === 'B' ? (12 + (c.off || 0)) + 'px' : '';
       c.el.style.left = h === 'L' ? Math.max(6, mL - 110) + 'px' : (h === 'M' ? (function () { var q = document.createRange(); q.selectNodeContents(c.span); var r0 = q.getClientRects()[0]; var cx = (r0.left + r0.right) / 2 - cr.left; return Math.min(Math.max(6, cx - c.el.offsetWidth / 2), cr.width - c.el.offsetWidth - 6); })() + 'px' : (h === 'C' ? Math.max(0, cr.width * 0.68 - c.el.offsetWidth / 2) + 'px' : ''));
-      c.el.style.right = h === 'R' ? Math.max(6, mR - 110) + 'px' : '';
+      c.el.style.right = h === 'R' ? Math.max(6, mR - 110 + (c.dx || 0)) + 'px' : '';
       var g = document.createRange();
       g.selectNodeContents(c.span);
       var rs = Array.prototype.slice.call(g.getClientRects());
@@ -1320,7 +1323,16 @@
     document.execCommand('foreColor', false, c);
     document.execCommand('styleWithCSS', false, false);
     $('colorBar').style.background = c;
+    /* Χωρίς επιλεγμένο κείμενο: η γραμμή του κέρσορα παίρνει αμέσως το νέο χρώμα */
+    var cs = window.getSelection();
+    if (cs.rangeCount && cs.isCollapsed) {
+      var ce = cellOf(cs.anchorNode);
+      if (ce) { clearCaret(); ce.style.caretColor = c; }
+    }
     afterChange();
+  }
+  function clearCaret() {
+    panels.forEach(function (p) { p.cells.forEach(function (x) { x.style.caretColor = ''; }); });
   }
 
   /* ---------- Κατάσταση ---------- */
@@ -1358,8 +1370,8 @@
   }
 
   /* ---------- Γράψιμο στα κουτάκια ---------- */
-  panelsEl.addEventListener('pointerdown', function () { pendingPx = null; });
-  panelsEl.addEventListener('keydown', function (e) { if (e.key.indexOf('Arrow') === 0 || e.key === 'Home' || e.key === 'End') pendingPx = null; });
+  panelsEl.addEventListener('pointerdown', function () { pendingPx = null; clearCaret(); });
+  panelsEl.addEventListener('keydown', function (e) { if (e.key.indexOf('Arrow') === 0 || e.key === 'Home' || e.key === 'End') { pendingPx = null; clearCaret(); } });
   panelsEl.addEventListener('input', function (e) {
     pendingPx = null;
     if (!applyingSize) fixFonts(false);
