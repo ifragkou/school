@@ -6,7 +6,7 @@
 <title>Παζλ στα κελιά του Excel</title>
 <style>
 *{box-sizing:border-box}
-html{height:100%}
+html{height:100%;overflow:hidden;overscroll-behavior:none}
 body{height:100%;overflow:hidden;margin:0;font-family:"Segoe UI",Arial,sans-serif;background:#eef3ef;color:#222;-webkit-user-select:none;user-select:none}
 #app{position:absolute;left:0;top:0;width:1130px;transform-origin:0 0}
 .top{background:#217346;color:#fff;padding:10px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
@@ -55,6 +55,9 @@ body{height:100%;overflow:hidden;margin:0;font-family:"Segoe UI",Arial,sans-seri
 #win p{font-size:18px;margin:0 0 16px}
 #win button{font-size:17px;padding:8px 18px;border-radius:8px;border:0;background:#217346;color:#fff;font-weight:700;cursor:pointer;margin:0 6px;font-family:inherit}
 #win button.sec{background:#ddd;color:#222}
+#app.stack{width:720px}
+#app.stack .main{flex-direction:column;align-items:center;gap:18px}
+#app.stack #trayWrap{width:684px}
 </style>
 </head>
 <body>
@@ -413,21 +416,29 @@ newGame();
 </script>
 <script>
 (function(){
-  var app=document.getElementById('app'),maxH=0;
+  var app=document.getElementById('app'),maxH=[0,0],raf=0;
+  var topBar=app.querySelector('.top'),fbar=app.querySelector('.fbar');
   function fit(){
+    var vw=window.innerWidth,vh=window.innerHeight,best=null;
     app.style.transform='none';
-    var W=app.offsetWidth,H=app.offsetHeight;
-    if(H>maxH)maxH=H;
-    var vw=window.innerWidth,vh=window.innerHeight;
-    var k=Math.min(vw/W,vh/maxH,2);
-    app.style.transform='scale('+k+')';
-    app.style.left=Math.max(0,(vw-W*k)/2)+'px';
-    var a=app.querySelector('.top').offsetHeight*k,b2=a+app.querySelector('.fbar').offsetHeight*k;
+    for(var m=0;m<1;m++){
+      app.classList.toggle('stack',m===1);
+      var W=app.offsetWidth,H=app.offsetHeight;
+      if(H>maxH[m])maxH[m]=H;
+      var k=Math.min(vw/W,vh/maxH[m],2.5);
+      if(!best||k>best.k+0.001)best={m:m,k:k,W:W};
+    }
+    app.classList.toggle('stack',best.m===1);
+    app.style.transform='scale('+best.k+')';
+    app.style.left=Math.max(0,(vw-best.W*best.k)/2)+'px';
+    var a=topBar.offsetHeight*best.k,b2=a+fbar.offsetHeight*best.k;
     document.body.style.background='linear-gradient(to bottom,#217346 0,#217346 '+a+'px,#fff '+a+'px,#fff '+b2+'px,#bbb '+b2+'px,#bbb '+(b2+1)+'px,#eef3ef '+(b2+1)+'px)';
   }
-  window.addEventListener('resize',fit);
-  window.addEventListener('load',fit);
-  if(window.ResizeObserver)new ResizeObserver(fit).observe(app);
+  function sched(){cancelAnimationFrame(raf);raf=requestAnimationFrame(fit)}
+  window.addEventListener('resize',sched);
+  window.addEventListener('orientationchange',sched);
+  window.addEventListener('load',sched);
+  if(window.ResizeObserver)new ResizeObserver(sched).observe(app);
   fit();
 })();
 </script>
