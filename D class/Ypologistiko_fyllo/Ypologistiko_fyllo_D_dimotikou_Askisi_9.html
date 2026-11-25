@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ναυμαχία στα κελιά του Excel</title>
+<style>
+*{box-sizing:border-box}
+html{height:100%;overflow:hidden;overscroll-behavior:none}
+body{height:100%;overflow:hidden;margin:0;font-family:"Segoe UI",Arial,sans-serif;background:#eef3ef;color:#222;-webkit-user-select:none;user-select:none}
+#app{position:absolute;left:0;top:0;width:920px;transform-origin:0 0}
+.top{background:#217346;color:#fff;padding:10px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.top h1{font-size:21px;margin:0;flex:1;min-width:240px}
+.top label{font-size:14px}
+.top select,.top button{font-size:15px;padding:6px 10px;border-radius:6px;border:0;font-family:inherit}
+.top button{background:#ffd93b;font-weight:700;cursor:pointer}
+.car{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.15);padding:4px 8px;border-radius:12px}
+.top .car button{width:34px;height:34px;font-size:26px;line-height:1;padding:0;background:#fff;border-radius:50%;cursor:pointer;font-weight:700;color:#217346}
+.cinfo{min-width:130px}
+#ctitle{font-size:14px;font-weight:700;text-align:center}
+#dots{display:flex;gap:6px;justify-content:center;margin-top:4px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.4);cursor:pointer}
+.dot.on{background:#ffd93b}
+.top button.fsbtn{background:transparent;width:40px;height:40px;padding:6px;border:2px solid rgba(255,255,255,.75);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.top button.fsbtn:hover{background:rgba(255,255,255,.2)}
+.fbar{display:flex;align-items:center;background:#fff;border-bottom:1px solid #bbb;min-height:36px}
+#namebox{width:120px;height:46px;margin:6px 8px;border:3px solid #ff9800;border-radius:10px;text-align:center;font:800 28px "Segoe UI",Arial,sans-serif;outline:0;background:#fffde7;color:#222;-webkit-user-select:text;user-select:text;text-transform:uppercase;animation:glow 1.2s infinite alternate}
+#namebox::placeholder{font-size:20px;font-weight:600;color:#aaa;text-transform:none}
+#namebox:focus{background:#fff;border-color:#e65100;animation:none;box-shadow:0 0 0 4px rgba(255,152,0,.35)}
+@keyframes glow{from{box-shadow:0 0 0 0 rgba(255,152,0,.6)}to{box-shadow:0 0 0 6px rgba(255,152,0,0)}}
+.aim{font-size:20px;font-weight:800;color:#e65100;padding-left:14px;white-space:nowrap}
+#shoot{font-size:20px;font-weight:800;padding:8px 16px;border:0;border-radius:10px;background:#e53935;color:#fff;cursor:pointer;font-family:inherit;margin-right:6px}
+#shoot:hover{background:#c62828}
+.fx{display:none}
+.fx{padding:0 12px;font-style:italic;color:#217346;font-weight:700;border-right:1px solid #ccc;line-height:36px}
+#msg{padding:4px 14px;font-size:16px;font-weight:600;flex:1;color:#333}
+#msg.ok{color:#14702f}
+#msg.err{color:#c0262d}
+.main{display:flex;flex-wrap:nowrap;gap:16px;padding:16px;align-items:flex-start;justify-content:center}
+#sheet{position:relative;display:grid;grid-template-columns:36px repeat(10,52px);grid-template-rows:24px repeat(8,44px);background:#fff;border:1px solid #aaa;width:max-content}
+.hd{background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;box-shadow:inset -1px -1px 0 #c8c8c8}
+.hd.hl{background:#ffd93b;color:#7a4b00}
+.cell{position:relative;background:#d6ecf8;box-shadow:inset -1px -1px 0 rgba(0,0,0,.14);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:var(--fs,26px);line-height:1}
+.cell:hover{background:#b9dcf1}
+.cell.miss{background:#7fb6d9;cursor:default}
+.cell.miss::after{content:'';width:18px;height:18px;border-radius:50%;background:#fff;opacity:.85}
+.cell.hit{background:#ffcdd2;cursor:default;animation:pop .35s}
+.cell.sunk{background:#6d4c41;cursor:default}
+.cell.reveal{background:#cfd8dc;cursor:default}
+.cell.last{outline:3px solid #ff5722;outline-offset:-3px;z-index:2}
+@keyframes pop{0%{transform:scale(.3)}70%{transform:scale(1.25)}100%{transform:scale(1)}}
+#namebox{width:90px;border:0;border-right:1px solid #ccc;text-align:center;font:700 16px "Segoe UI",Arial,sans-serif;height:36px;outline:0;background:#fff;color:#222;-webkit-user-select:text;user-select:text}
+#namebox:focus{background:#e8f5e9}
+#counter{margin-top:8px;font-size:16px;font-weight:700}
+#panel{flex:1;min-width:0;background:#e8f1f7;border:2px solid #3b6f95;border-radius:12px;padding:12px 16px}
+#panel h2{margin:0 0 10px;font-size:19px;color:#1d4766}
+.ship{display:flex;align-items:center;gap:10px;margin:0 0 8px;font-size:16px;font-weight:700;color:#1d4766}
+.ship .ic{display:flex;width:44px}
+.ship .nm{width:130px}
+.ship.dead .ic{opacity:.45}
+.ship .sq{display:flex;gap:3px}
+.ship .sq i{width:22px;height:22px;border-radius:4px;background:#fff;border:2px solid #3b6f95}
+.ship.dead .nm{text-decoration:line-through;color:#14702f}
+.ship.dead .sq i{background:#6d4c41;border-color:#6d4c41}
+#stats{margin-top:12px;font-size:16px;font-weight:700;color:#1d4766;line-height:1.6}
+#win{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2000;align-items:center;justify-content:center}
+#win .box{background:#fff;border-radius:16px;padding:28px 40px;text-align:center;max-width:90vw}
+#win h2{font-size:34px;margin:0 0 8px;color:#217346}
+#win p{font-size:18px;margin:0 0 16px}
+#win button{font-size:17px;padding:8px 18px;border-radius:8px;border:0;background:#217346;color:#fff;font-weight:700;cursor:pointer;margin:0 6px;font-family:inherit}
+#win button.sec{background:#ddd;color:#222}
+</style>
+</head>
+<body>
+<div id="app">
+<div class="top">
+  <h1>🚢 Ναυμαχία στα κελιά του Excel</h1>
+  <div class="car">
+    <button id="prev" title="Προηγούμενο επίπεδο">‹</button>
+    <div class="cinfo"><div id="ctitle"></div><div id="dots"></div></div>
+    <button id="next" title="Επόμενο επίπεδο">›</button>
+  </div>
+  <button id="again">Νέο παιχνίδι</button>
+  <button id="fs" class="fsbtn" aria-label="Πλήρης οθόνη"></button>
+</div>
+<div class="fbar">
+  <div class="aim">🎯 Κελί:</div>
+  <input id="namebox" type="text" maxlength="4" placeholder="π.χ. D5" autofocus autocomplete="off" spellcheck="false">
+  <div class="fx">fx</div>
+  <div id="msg"></div>
+</div>
+<div class="main">
+  <div>
+    <div id="sheet"></div>
+    <div id="counter"></div>
+  </div>
+  <div id="panel">
+    <h2>⚓ Ο στόλος του εχθρού</h2>
+    <div id="ships"></div>
+    <div id="stats"></div>
+  </div>
+</div>
+</div>
+<div id="win">
+  <div class="box">
+    <h2 id="wtitle"></h2>
+    <p id="wtext"></p>
+    <button id="winNext">Νέο παιχνίδι</button>
+    <button id="winClose" class="sec">Κλείσιμο</button>
+  </div>
+</div>
+<script>
+(function(){
+let COLS=6, ROWS=6, FLEET=[], TOTAL=0;
+const L=function(i){return String.fromCharCode(65+i)};
+function el(t,c,x){const d=document.createElement(t);if(c)d.className=c;if(x!==undefined)d.textContent=x;return d}
+const SV='<svg viewBox="0 0 44 22" width="44" height="22" fill="#1d4766">';
+const ICONS={
+ 'Αεροπλανοφόρο':SV+'<path d="M2 13h40l-5 6H7z"/><rect x="3" y="10" width="38" height="3" rx="1"/><rect x="25" y="4" width="6" height="6"/><path d="M9 8l5 1.5L9 11z" fill="#e53935"/></svg>',
+ 'Καταδρομικό':SV+'<path d="M2 14h40l-4 5H7z"/><rect x="10" y="9" width="12" height="5"/><rect x="24" y="7" width="7" height="7"/><rect x="14" y="5" width="3" height="4"/><rect x="33" y="10" width="7" height="2"/></svg>',
+ 'Αντιτορπιλικό':SV+'<path d="M4 14h36l-4 5H8z"/><rect x="14" y="9" width="12" height="5"/><rect x="18" y="4" width="4" height="5"/><rect x="29" y="11" width="7" height="2"/></svg>',
+ 'Υποβρύχιο':SV+'<ellipse cx="22" cy="15" rx="19" ry="5"/><rect x="18" y="8" width="8" height="6" rx="1"/><rect x="23" y="3" width="2" height="6"/><rect x="23" y="3" width="6" height="2"/></svg>',
+ 'Περιπολικό':SV+'<path d="M8 15h28l-3 4H11z"/><rect x="16" y="9" width="11" height="6" rx="1"/><rect x="20" y="5" width="2" height="4"/></svg>'
+};
+const LEVELS=[
+ {cols:4,rows:4,cw:120,ch:80,fs:46,shots:0,fleet:[['Καταδρομικό',1],['Υποβρύχιο',1],['Περιπολικό',1]]},
+ {cols:5,rows:5,cw:100,ch:68,fs:40,shots:15,fleet:[['Αεροπλανοφόρο',1],['Καταδρομικό',1],['Υποβρύχιο',1],['Περιπολικό',1]]},
+ {cols:6,rows:6,cw:84,ch:60,fs:34,shots:22,fleet:[['Αεροπλανοφόρο',1],['Καταδρομικό',1],['Αντιτορπιλικό',1],['Υποβρύχιο',1],['Περιπολικό',1]]}
+];
+const GR={'Α':'A','Β':'B','Ψ':'C','Δ':'D','Ε':'E','Φ':'F','Γ':'G','Η':'H','Ι':'I','Ξ':'J'};
+
+const sheet=document.getElementById('sheet'),msg=document.getElementById('msg'),nb=document.getElementById('namebox');
+const winEl=document.getElementById('win');
+let lvl=0,grid,ships,shots,hits,over,cells,colH,rowH,lastKey=null;
+
+function say(t,c){msg.textContent=t||'';msg.className=c||''}
+function place(){
+  for(let a=0;a<50;a++){placeOnce();if(ships.every(Boolean))return}
+}
+function placeOnce(){
+  grid=[];for(let r=0;r<ROWS;r++){grid.push(new Array(COLS).fill(-1))}
+  ships=FLEET.map(function(f,i){
+    for(let tries=0;tries<500;tries++){
+      const hor=Math.random()<.5,len=f[1];
+      const c0=Math.floor(Math.random()*(COLS-(hor?len-1:0))),r0=Math.floor(Math.random()*(ROWS-(hor?0:len-1)));
+      const cs=[];let ok=true;
+      for(let k=0;k<len;k++){const c=c0+(hor?k:0),r=r0+(hor?0:k);for(let dr=-1;dr<=1&&ok;dr++)for(let dc=-1;dc<=1;dc++){const y=r+dr,x=c+dc;if(y>=0&&x>=0&&y<ROWS&&x<COLS&&grid[y][x]!==-1){ok=false;break}}if(!ok)break;cs.push([c,r])}
+      if(ok){cs.forEach(function(p){grid[p[1]][p[0]]=i});return {name:f[0],len:len,cells:cs,hit:0}}
+    }
+  });
+}
+function build(){
+  sheet.innerHTML='';cells={};colH=[];rowH=[];
+  sheet.style.gridTemplateColumns='36px repeat('+COLS+','+LEVELS[lvl].cw+'px)';
+  sheet.style.setProperty('--fs',LEVELS[lvl].fs+'px');
+  sheet.style.gridTemplateRows='24px repeat('+ROWS+','+LEVELS[lvl].ch+'px)';
+  sheet.appendChild(el('div','hd'));
+  for(let c=0;c<COLS;c++){const h=el('div','hd',L(c));colH.push(h);sheet.appendChild(h)}
+  for(let r=0;r<ROWS;r++){
+    const h=el('div','hd',String(r+1));rowH.push(h);sheet.appendChild(h);
+    for(let c=0;c<COLS;c++){
+      const k=L(c)+(r+1),d=el('div','cell');d.dataset.a=k;
+      d.addEventListener('click',function(){say('Για να ρίξεις, γράψε τη διεύθυνση του κελιού (στήλη και γραμμή) στο πλαίσιο πάνω αριστερά και πάτα Enter.');nb.value='';nb.focus()});
+      d.addEventListener('mouseenter',function(){colH[c].classList.add('hl');rowH[r].classList.add('hl')});
+      d.addEventListener('mouseleave',function(){colH[c].classList.remove('hl');rowH[r].classList.remove('hl')});
+      cells[k]=d;sheet.appendChild(d);
+    }
+  }
+}
+function renderShips(){
+  const box=document.getElementById('ships');box.innerHTML='';
+  ships.forEach(function(s){
+    const d=el('div','ship'+(s.hit===s.len?' dead':''));
+    const ic=el('span','ic');ic.innerHTML=ICONS[s.name]||'';d.appendChild(ic);
+    d.appendChild(el('span','nm',s.name));
+    box.appendChild(d);
+  });
+  const lim=LEVELS[lvl].shots;
+  document.getElementById('stats').innerHTML='Βολές: <b>'+shots+'</b>'+(lim?' από <b>'+lim+'</b>':'')+'';
+  document.getElementById('counter').textContent='Βυθισμένα πλοία: '+ships.filter(function(s){return s.hit===s.len}).length+' από '+ships.length;
+}
+function renderCar(){
+  document.getElementById('ctitle').textContent='Επίπεδο '+(lvl+1)+' από '+LEVELS.length;
+  const dots=document.getElementById('dots');dots.innerHTML='';
+  LEVELS.forEach(function(_,i){const d=el('span','dot'+(i===lvl?' on':''));d.addEventListener('click',function(){start(i)});dots.appendChild(d)});
+}
+function near(c,r){
+  for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){const x=c+dc,y=r+dr;if(x>=0&&y>=0&&x<COLS&&y<ROWS&&grid[y][x]>=0&&ships[grid[y][x]].hit<ships[grid[y][x]].len)return true}
+  return false;
+}
+function fire(c,r){
+  if(over)return;
+  const k=L(c)+(r+1),d=cells[k];
+  nb.value=k;
+  if(d.classList.contains('miss')||d.classList.contains('hit')||d.classList.contains('sunk')){say('Έχεις ήδη ρίξει στο '+k+'. Διάλεξε άλλο κελί!','err');return}
+  if(lastKey)cells[lastKey].classList.remove('last');
+  lastKey=k;d.classList.add('last');
+  shots++;
+  const i=grid[r][c];
+  if(i<0){d.classList.add('miss');say('Βολή στο '+k+': στο νερό! 💧 '+(near(c,r)?'Ζεστά! 🔥 Υπάρχει πλοίο δίπλα σου.':'Κρύα. ❄️'))}
+  else{
+    const s=ships[i];s.hit++;hits++;d.classList.add('hit');d.textContent='💥';
+    if(s.hit===s.len){
+      s.cells.forEach(function(p){const e=cells[L(p[0])+(p[1]+1)];e.className=e.className.replace('hit','sunk');e.textContent='🚢'});
+      say('Βολή στο '+k+': βούλιαξες το '+s.name+'! 🎉','ok');
+    }else say('Βολή στο '+k+': χτύπημα! 💥','ok');
+  }
+  renderShips();
+  if(hits===TOTAL)finish(true);
+  else if(LEVELS[lvl].shots&&shots>=LEVELS[lvl].shots)finish(false);
+}
+function finish(win){
+  over=true;
+  if(!win)ships.forEach(function(s){s.cells.forEach(function(p){const e=cells[L(p[0])+(p[1]+1)];if(!e.classList.contains('hit')&&!e.classList.contains('sunk')){e.classList.add('reveal');e.textContent='🚢'}})});
+  document.getElementById('wtitle').textContent=win?'🏆 Βούλιαξες όλο τον στόλο!':'⏰ Τελείωσαν οι βολές!';
+  document.getElementById('wtext').textContent=win?'Έριξες '+shots+' βολές. Μπράβο, ναύαρχε των κελιών!':'Τα πλοία που έμειναν φαίνονται στο φύλλο. Δοκίμασε ξανά!';
+  say(win?'Νίκη! 🎉':'Δοκίμασε ξανά!',win?'ok':'err');
+  setTimeout(function(){winEl.style.display='flex'},700);
+}
+function parse(v){
+  v=v.trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const m=/^([A-JΑΒΨΔΕΦΓΗΙΞ])\s*(\d{1,2})$/.exec(v);
+  if(!m)return null;
+  const ch=GR[m[1]]||m[1],c=ch.charCodeAt(0)-65,r=parseInt(m[2],10)-1;
+  if(c<0||c>=COLS||r<0||r>=ROWS)return null;
+  return [c,r];
+}
+function shoot(){
+  const p=parse(nb.value);
+  if(!p){say('Γράψε μια διεύθυνση κελιού, π.χ. D5 (στήλη A–'+L(COLS-1)+', γραμμή 1–'+ROWS+').','err');return}
+  fire(p[0],p[1]);nb.select();
+}
+nb.addEventListener('keydown',function(e){if(e.key==='Enter')shoot()});
+function start(i){
+  lvl=(i+LEVELS.length)%LEVELS.length;
+  COLS=LEVELS[lvl].cols;ROWS=LEVELS[lvl].rows;FLEET=LEVELS[lvl].fleet;TOTAL=FLEET.reduce(function(a,f){return a+f[1]},0);
+  shots=0;hits=0;over=false;lastKey=null;winEl.style.display='none';
+  place();build();renderCar();renderShips();nb.value='';say('');
+}
+document.getElementById('prev').addEventListener('click',function(){start(lvl-1)});
+document.getElementById('next').addEventListener('click',function(){start(lvl+1)});
+document.getElementById('again').addEventListener('click',function(){start(lvl)});
+document.getElementById('winNext').addEventListener('click',function(){start(lvl)});
+document.getElementById('winClose').addEventListener('click',function(){winEl.style.display='none'});
+start(0);
+})();
+</script>
+<script>
+(function(){
+  var b=document.getElementById('fs');
+  var expand='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>';
+  var compress='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>';
+  function isFs(){return document.fullscreenElement||document.webkitFullscreenElement}
+  function upd(){b.innerHTML=isFs()?compress:expand}
+  b.addEventListener('click',function(){
+    var d=document,e=d.documentElement,r;
+    try{
+      if(isFs()){r=(d.exitFullscreen||d.webkitExitFullscreen).call(d)}
+      else{r=(e.requestFullscreen||e.webkitRequestFullscreen).call(e)}
+      if(r&&r.catch)r.catch(function(){});
+    }catch(err){}
+  });
+  document.addEventListener('fullscreenchange',upd);
+  document.addEventListener('webkitfullscreenchange',upd);
+  upd();
+})();
+</script>
+<script>
+(function(){
+  var app=document.getElementById('app'),maxH=[0,0],raf=0;
+  var topBar=app.querySelector('.top'),fbar=app.querySelector('.fbar');
+  function fit(){
+    var vw=window.innerWidth,vh=window.innerHeight,best=null;
+    app.style.transform='none';
+    for(var m=0;m<1;m++){
+      app.classList.toggle('stack',m===1);
+      var W=app.offsetWidth,H=app.offsetHeight;
+      if(H>maxH[m])maxH[m]=H;
+      var k=Math.min(vw/W,vh/maxH[m],2.5);
+      if(!best||k>best.k+0.001)best={m:m,k:k,W:W};
+    }
+    app.classList.toggle('stack',best.m===1);
+    app.style.transform='scale('+best.k+')';
+    app.style.left=Math.max(0,(vw-best.W*best.k)/2)+'px';
+    var a=topBar.offsetHeight*best.k,b2=a+fbar.offsetHeight*best.k;
+    document.body.style.background='linear-gradient(to bottom,#217346 0,#217346 '+a+'px,#fff '+a+'px,#fff '+b2+'px,#bbb '+b2+'px,#bbb '+(b2+1)+'px,#eef3ef '+(b2+1)+'px)';
+  }
+  function sched(){cancelAnimationFrame(raf);raf=requestAnimationFrame(fit)}
+  window.addEventListener('resize',sched);
+  window.addEventListener('orientationchange',sched);
+  window.addEventListener('load',sched);
+  if(window.ResizeObserver)new ResizeObserver(sched).observe(app);
+  fit();
+})();
+</script>
+</body>
+</html>
